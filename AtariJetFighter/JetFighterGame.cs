@@ -20,14 +20,12 @@ namespace AtariJetFighter
         public Scene scene;
         public bool sceneInitialized = false;
 
-
-
-
         public JetFighterGame()
         {
             _graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
+           
         }
 
         protected override void Initialize()
@@ -46,6 +44,8 @@ namespace AtariJetFighter
             spriteBatch = new SpriteBatch(GraphicsDevice);
             font = Content.Load<SpriteFont>("Font");
             jet = Content.Load<Texture2D>("player knife");
+            this.Components.Add(new TextDrawer(this, spriteBatch, font));
+
 
             // TODO: use this.Content to load your game content here
         }
@@ -54,14 +54,12 @@ namespace AtariJetFighter
         {
             InputController.UpdateKeyboardState();
 
-            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
-                Exit();
-
-            
-
             switch (GameState)
             {
                 case GameStateEnum.MainMenu:
+
+                    if (InputController.hasBeenPressed(Keys.Escape))
+                        Exit();
 
                     // start as server 
                     if (InputController.hasBeenPressed(Keys.N))
@@ -71,9 +69,13 @@ namespace AtariJetFighter
                         this.gameMachine = new GameMachine(this, 14242);
                         this.Components.Add(this.gameMachine);
 
-                        //this.client = new Client(this, 14242);
-                        //this.Components.Add(this.client);
-                        //GameState = GameStateEnum.GameRunning;
+                        this.scene = new Scene(this);
+                        this.Components.Add(this.scene);
+
+                        this.client = new Client(this, 14242);
+                        this.Components.Add(this.client);
+                        sceneInitialized = true;
+                        GameState = GameStateEnum.GameRunning;
                     }
 
                     if (InputController.hasBeenPressed(Keys.J))
@@ -93,6 +95,9 @@ namespace AtariJetFighter
                         //start as client
                         break;
                 case GameStateEnum.GameRunning:
+
+                    if (InputController.hasBeenPressed(Keys.Escape))
+                        ReturntoMainMenu();
                     if (Keyboard.GetState().IsKeyDown(Keys.X))
                     {
                         this.client.sendMessage("pes");
@@ -113,12 +118,19 @@ namespace AtariJetFighter
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
             spriteBatch.Begin();
-            spriteBatch.DrawString(font, "SCORE: 235", Vector2.Zero, Color.Black, 0.0f, Vector2.Zero,1.0f, SpriteEffects.None, 1.0f);
+            //spriteBatch.DrawString(font, "SCORE: 235", Vector2.Zero, Color.Black, 0.0f, Vector2.Zero,1.0f, SpriteEffects.None, 1.0f);
             spriteBatch.End();
 
             // TODO: Add your drawing code here
 
             base.Draw(gameTime);
+        }
+
+        private void ReturntoMainMenu()
+        {
+            this.GameState = GameStateEnum.MainMenu;
+
+
         }
     }
 }

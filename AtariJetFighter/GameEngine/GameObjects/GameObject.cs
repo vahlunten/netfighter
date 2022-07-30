@@ -12,6 +12,7 @@ namespace AtariJetFighter.GameEngine.GameObjects
         public byte Id { get; set; }
         public Vector2 Position;
         public float Rotation;
+        public float Velocity { get; set; }
 
     }
 }

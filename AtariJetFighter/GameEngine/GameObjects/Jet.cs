@@ -8,7 +8,7 @@ namespace AtariJetFighter.GameEngine.GameObjects
 {
     class Jet : GameObject
     {
-        public float Velocity { get; set; }
+        
         public long PlayerId { get; set; }
 
     }
