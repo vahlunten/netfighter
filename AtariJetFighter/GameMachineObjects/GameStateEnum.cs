@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace AtariJetFighter.GameMachineObjects
 {
+    /// <summary>
+    /// This enum represents current state of the game.
+    /// </summary>
     public enum GameStateEnum
     {
         MainMenu,

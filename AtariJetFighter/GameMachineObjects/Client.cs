@@ -1,5 +1,8 @@
-﻿using Lidgren.Network;
+﻿using AtariJetFighter.Networking;
+using AtariJetFighter.Networking.Messages;
+using Lidgren.Network;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,7 +22,7 @@ namespace AtariJetFighter.GameMachineObjects
         {
             this.port = port;
             this.game = game;
-            NetPeerConfiguration config = new NetPeerConfiguration("chat");
+            NetPeerConfiguration config = new NetPeerConfiguration("AtariNetFighter");
             config.AutoFlushSendQueue = true;
             netClient = new NetClient(config);
         }
@@ -33,8 +36,37 @@ namespace AtariJetFighter.GameMachineObjects
 
         public override void Update(GameTime gameTime)
         {
+            ProcessMessages();
+            SteerJet();
 
+            base.Update(gameTime);
+        }
+        public void SteerJet()
+        {
+            if (InputController.keyIsPressed(Keys.Left))
+            {
+                SendUserControlMessage(Controls.Left);
+                
+            }
+            else if (InputController.keyIsPressed(Keys.Right))
+            {
+                SendUserControlMessage(Controls.Right);
+            }
+            else if (InputController.keyIsPressed(Keys.Space))
+            {
+                SendUserControlMessage(Controls.Shoot);
+            }
+        }
+        public void SendUserControlMessage(Controls command)
+        {
+            Console.WriteLine("Sending user control message: " + command.ToString());
+            NetOutgoingMessage message = netClient.CreateMessage();
+            UserControlMessage.FillMessage(message, command);
+            netClient.SendMessage(message, NetDeliveryMethod.UnreliableSequenced);
+        }
 
+        private void ProcessMessages()
+        {
             NetIncomingMessage im;
             while ((im = netClient.ReadMessage()) != null)
             {
@@ -62,12 +94,12 @@ namespace AtariJetFighter.GameMachineObjects
 
                         break;
                     case NetIncomingMessageType.Data:
-                        string chat = im.ReadString();
+                        //string chat = im.ReadString();
                         if (this.game.sceneInitialized)
                         {
 
                         }
-                        this.game.scene.UpdateJet();
+                        this.ProcessMessage(im);
                         //Console.WriteLine("Client received this message: " + 
                         //    chat);
                         break;
@@ -78,22 +110,33 @@ namespace AtariJetFighter.GameMachineObjects
                 netClient.Recycle(im);
             }
 
-            
-            //elapsed = elapsed - gameTime.ElapsedGameTime.TotalMilliseconds;
-            //if(elapsed < 0)
-            //{
-            //    Console.WriteLine("Sending Message ");
-            //    NetOutgoingMessage message = netClient.CreateMessage("mama moja ");
-            //    netClient.SendMessage(message, NetDeliveryMethod.ReliableOrdered);
-            //    elapsed = 5000;
-            //}
-            base.Update(gameTime);
         }
-        public void sendMessage(string messageText)
+        private void ProcessMessage(NetIncomingMessage message)
         {
-            NetOutgoingMessage message = netClient.CreateMessage($"Message from client { messageText}");
-            netClient.SendMessage(message, NetDeliveryMethod.ReliableOrdered);
+            byte messageType = message.ReadByte();
+            switch (messageType)
+            {
+                case (byte)UpdateMessageType.UpdateTransform:
+                {
+                    this.ProcessTransformMessage(message);
+                    break;
+                }
+
+                default:
+                    break;
+            }
         }
+
+        private void ProcessTransformMessage(NetIncomingMessage message)
+        {
+            byte objectId = message.ReadByte();
+            float positionX = message.ReadFloat();
+            float positionY = message.ReadFloat();
+            float rotation = message.ReadFloat();
+
+            this.game.scene.UpdateJet(new Vector2(positionX, positionY), rotation);
+        }
+
     }
     
 }

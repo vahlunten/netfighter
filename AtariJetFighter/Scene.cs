@@ -12,7 +12,7 @@ namespace AtariJetFighter
     {
         public bool isInitialized = false;
         private JetFighterGame game;
-        private Vector2 position = new Vector2(400f, 400f);
+        private Vector2 position = new Vector2(200f, 200f);
         private float rotation = 0f;
 
         public Scene(JetFighterGame game) : base((Game) game)
@@ -31,6 +31,7 @@ namespace AtariJetFighter
         
         public override void Draw(GameTime gameTime)
         {
+            GraphicsDevice.Clear(Color.Black);
             this.game.spriteBatch.Begin();
             DrawPlayers();
             this.game.spriteBatch.End();
@@ -40,6 +41,7 @@ namespace AtariJetFighter
 
         public void DrawPlayers()
         {
+            //Console.WriteLine("Coordinates: " + this.position);
             this.game.spriteBatch.Draw(this.game.jet, this.position, Color.White);
         }
 
@@ -61,13 +63,14 @@ namespace AtariJetFighter
 
         }
 
-        public void UpdateJet()
+        public void UpdateJet(Vector2 position, float rotation)
         {
-            this.position += new Vector2(10f, 0f) ;
+            this.position = position;
             if (position.X > 800)
             {
                 position.X = 0f;
             }
+            this.rotation = rotation;
         }
 
 

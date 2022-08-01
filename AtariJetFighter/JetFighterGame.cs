@@ -17,6 +17,7 @@ namespace AtariJetFighter
         private Client client;
         public SpriteFont font;
         public Texture2D jet;
+        public Texture2D bullet;
         public Scene scene;
         public bool sceneInitialized = false;
 
@@ -43,7 +44,8 @@ namespace AtariJetFighter
         {
             spriteBatch = new SpriteBatch(GraphicsDevice);
             font = Content.Load<SpriteFont>("Font");
-            jet = Content.Load<Texture2D>("player knife");
+            jet = Content.Load<Texture2D>("jet");
+            bullet = Content.Load<Texture2D>("bullet");
             this.Components.Add(new TextDrawer(this, spriteBatch, font));
 
 
@@ -65,34 +67,13 @@ namespace AtariJetFighter
                     if (InputController.hasBeenPressed(Keys.N))
                     {
                         Console.WriteLine("Key N has been Pressed, starting gamemachine");
-                        // start new game 
-                        this.gameMachine = new GameMachine(this, 14242);
-                        this.Components.Add(this.gameMachine);
-
-                        this.scene = new Scene(this);
-                        this.Components.Add(this.scene);
-
-                        this.client = new Client(this, 14242);
-                        this.Components.Add(this.client);
-                        sceneInitialized = true;
-                        GameState = GameStateEnum.GameRunning;
+                        this.HostGame();
                     }
 
                     if (InputController.hasBeenPressed(Keys.J))
                     {
-                        this.scene = new Scene(this);
-                        this.Components.Add(this.scene);
-
-                        this.client = new Client(this, 14242);
-                        this.Components.Add(this.client);
-                        sceneInitialized = true;
-
-                        
-
-                        GameState = GameStateEnum.GameRunning;
+                        this.JoinGame();
                     }
-
-                        //start as client
                         break;
                 case GameStateEnum.GameRunning:
 
@@ -100,37 +81,49 @@ namespace AtariJetFighter
                         ReturntoMainMenu();
                     if (Keyboard.GetState().IsKeyDown(Keys.X))
                     {
-                        this.client.sendMessage("pes");
+                        //this.client.sendMessage("pes");
                     }
                         break;
                 case GameStateEnum.Disconnected:
+                    GameState = GameStateEnum.Disconnected;
                     break;
                 default:
                     break;
             }
-
-            // TODO: Add your update logic here
-
             base.Update(gameTime);
         }
 
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Color.CornflowerBlue);
-            spriteBatch.Begin();
-            //spriteBatch.DrawString(font, "SCORE: 235", Vector2.Zero, Color.Black, 0.0f, Vector2.Zero,1.0f, SpriteEffects.None, 1.0f);
-            spriteBatch.End();
-
-            // TODO: Add your drawing code here
-
+            GraphicsDevice.Clear(Color.Black);
             base.Draw(gameTime);
         }
 
         private void ReturntoMainMenu()
         {
             this.GameState = GameStateEnum.MainMenu;
+        }
 
+        private void HostGame()
+        {
+            this.gameMachine = new GameMachine(this, 14242);
+            this.Components.Add(this.gameMachine);
 
+            this.scene = new Scene(this);
+            this.Components.Add(this.scene);
+
+            JoinGame();
+        }
+        private void JoinGame()
+        {
+            this.scene = new Scene(this);
+            this.Components.Add(this.scene);
+
+            this.client = new Client(this, 14242);
+            this.Components.Add(this.client);
+
+            sceneInitialized = true;
+            GameState = GameStateEnum.GameRunning;
         }
     }
 }

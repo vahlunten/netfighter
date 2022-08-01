@@ -8,6 +8,7 @@ namespace AtariJetFighter.Networking
 {
     public enum UpdateMessageType : byte
     {
+        UserControl,
         UpdateTransform,
         SpawnPlayer,
         SpawnProjectile,

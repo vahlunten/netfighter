@@ -1,4 +1,3 @@
-C:\Users\vladopisko\source\repos\AtariJetFighter\AtariJetFighter\obj\Debug\net5.0-windows\AtariJetFighter.csproj.AssemblyReference.cache
 C:\Users\vladopisko\source\repos\AtariJetFighter\AtariJetFighter\obj\Debug\net5.0-windows\AtariJetFighter.GeneratedMSBuildEditorConfig.editorconfig
 C:\Users\vladopisko\source\repos\AtariJetFighter\AtariJetFighter\obj\Debug\net5.0-windows\AtariJetFighter.AssemblyInfoInputs.cache
 C:\Users\vladopisko\source\repos\AtariJetFighter\AtariJetFighter\obj\Debug\net5.0-windows\AtariJetFighter.AssemblyInfo.cs
@@ -38,4 +37,5 @@ C:\Users\vladopisko\source\repos\AtariJetFighter\AtariJetFighter\obj\Debug\net5.
 C:\Users\vladopisko\source\repos\AtariJetFighter\AtariJetFighter\obj\Debug\net5.0-windows\AtariJetFighter.genruntimeconfig.cache
 C:\Users\vladopisko\source\repos\AtariJetFighter\AtariJetFighter\bin\Debug\net5.0-windows\Lidgren.Network.dll
 C:\Users\vladopisko\source\repos\AtariJetFighter\AtariJetFighter\bin\Debug\net5.0-windows\Content\Font.xnb
-C:\Users\vladopisko\source\repos\AtariJetFighter\AtariJetFighter\bin\Debug\net5.0-windows\Content\player knife.xnb
+C:\Users\vladopisko\source\repos\AtariJetFighter\AtariJetFighter\bin\Debug\net5.0-windows\Content\bullet.xnb
+C:\Users\vladopisko\source\repos\AtariJetFighter\AtariJetFighter\bin\Debug\net5.0-windows\Content\jet.xnb

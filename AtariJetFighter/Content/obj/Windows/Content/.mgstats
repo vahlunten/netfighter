@@ -1,3 +1,4 @@
 Source File,Dest File,Processor Type,Content Type,Source File Size,Dest File Size,Build Seconds
+"C:/Users/vladopisko/source/repos/AtariJetFighter/AtariJetFighter/Content/bullet.png","C:/Users/vladopisko/source/repos/AtariJetFighter/AtariJetFighter/Content/bin/Windows/Content/bullet.xnb","TextureProcessor","Texture2DContent",138,985,0.1523972
 "C:/Users/vladopisko/source/repos/AtariJetFighter/AtariJetFighter/Content/Font.spritefont","C:/Users/vladopisko/source/repos/AtariJetFighter/AtariJetFighter/Content/bin/Windows/Content/Font.xnb","FontDescriptionProcessor","SpriteFontContent",2026,136226,0.2126063
-"C:/Users/vladopisko/source/repos/AtariJetFighter/AtariJetFighter/Content/player knife.gif","C:/Users/vladopisko/source/repos/AtariJetFighter/AtariJetFighter/Content/bin/Windows/Content/player knife.xnb","TextureProcessor","Texture2DContent",7656,16469,0.1633656
+"C:/Users/vladopisko/source/repos/AtariJetFighter/AtariJetFighter/Content/jet.png","C:/Users/vladopisko/source/repos/AtariJetFighter/AtariJetFighter/Content/bin/Windows/Content/jet.xnb","TextureProcessor","Texture2DContent",870,16469,0.0039131
