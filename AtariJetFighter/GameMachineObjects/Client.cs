@@ -1,5 +1,4 @@
-﻿using AtariJetFighter.Networking;
-using AtariJetFighter.Networking.Messages;
+﻿using AtariJetFighter.Messages;
 using Lidgren.Network;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
@@ -38,6 +37,11 @@ namespace AtariJetFighter.GameMachineObjects
         }
         public void SteerJet()
         {
+            if (InputController.keyIsPressed(Keys.Left) && InputController.keyIsPressed(Keys.Right))
+            {
+                // if both steering keys are pressed, dont do anything
+                return;
+            }
             if (InputController.keyIsPressed(Keys.Left))
             {
                 SendUserControlMessage(Controls.Left);
@@ -47,7 +51,8 @@ namespace AtariJetFighter.GameMachineObjects
             {
                 SendUserControlMessage(Controls.Right);
             }
-            else if (InputController.hasBeenPressed(Keys.Space))
+
+            if (InputController.hasBeenPressed(Keys.Space))
             {
                 SendUserControlMessage(Controls.Shoot);
             }
@@ -55,54 +60,50 @@ namespace AtariJetFighter.GameMachineObjects
         public void SendUserControlMessage(Controls command)
         {
             //Console.WriteLine("Sending user control message: " + command.ToString());
-            NetOutgoingMessage message = netClient.CreateMessage();
-            UserControlMessage.FillMessage(message, command);
-            netClient.SendMessage(message, NetDeliveryMethod.UnreliableSequenced);
+            NetOutgoingMessage userControMessage = UserControlMessage.CreateMessage(this.netClient, command);
+            netClient.SendMessage(userControMessage, NetDeliveryMethod.UnreliableSequenced);
         }
 
         private void ProcessMessages()
         {
-            NetIncomingMessage im;
-            while ((im = netClient.ReadMessage()) != null)
+            NetIncomingMessage message;
+            while ((message = netClient.ReadMessage()) != null)
             {
                 // handle incoming message
-                switch (im.MessageType)
+                switch (message.MessageType)
                 {
                     case NetIncomingMessageType.DebugMessage:
                     case NetIncomingMessageType.ErrorMessage:
                     case NetIncomingMessageType.WarningMessage:
                     case NetIncomingMessageType.VerboseDebugMessage:
-                        string text = im.ReadString();
+                        string text = message.ReadString();
                         Console.Write(text);
                         break;
                     case NetIncomingMessageType.StatusChanged:
-                        NetConnectionStatus status = (NetConnectionStatus)im.ReadByte();
+                        NetConnectionStatus status = (NetConnectionStatus)message.ReadByte();
 
                         if (status == NetConnectionStatus.Connected)
-                            Console.WriteLine("Connected");
+                            Console.WriteLine("Client: Connected to the server");
 
                         if (status == NetConnectionStatus.Disconnected)
-                            Console.WriteLine("DisConnected");
+                            Console.WriteLine("Client: Disconnected from the server");
 
-                        string reason = im.ReadString();
+                        string reason = message.ReadString();
                         Console.WriteLine(status.ToString() + ": " + reason);
 
                         break;
                     case NetIncomingMessageType.Data:
-                        //string chat = im.ReadString();
                         if (this.game.sceneInitialized)
                         {
 
                         }
-                        this.ProcessMessage(im);
-                        //Console.WriteLine("Client received this message: " + 
-                        //    chat);
+                        this.ProcessMessage(message);
                         break;
                     default:
-                        Console.WriteLine("Unhandled type: " + im.MessageType + " " + im.LengthBytes + " bytes");
+                        Console.WriteLine("Unhandled type: " + message.MessageType + " " + message.LengthBytes + " bytes");
                         break;
                 }
-                netClient.Recycle(im);
+                netClient.Recycle(message);
             }
 
         }
@@ -126,7 +127,6 @@ namespace AtariJetFighter.GameMachineObjects
                 case UpdateMessageType.SpawnProjectile:
                     {
                         this.ProcessNewProjectileMessage(message);
-
                     }
                     break;
 

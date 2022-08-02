@@ -1,6 +1,5 @@
 ﻿using AtariJetFighter.GameEngine.GameObjects;
-using AtariJetFighter.Networking;
-using AtariJetFighter.Networking.Messages;
+using AtariJetFighter.Messages;
 using Lidgren.Network;
 using Microsoft.Xna.Framework;
 using System;
@@ -75,48 +74,51 @@ namespace AtariJetFighter.GameMachineObjects
 
         private void processMessages(GameTime gameTime)
         {
-			NetIncomingMessage im;
-			while ((im = serverPeer.ReadMessage()) != null)
+			NetIncomingMessage message;
+			while ((message = serverPeer.ReadMessage()) != null)
 			{
 				// handle incoming message
-				switch (im.MessageType)
+				switch (message.MessageType)
 				{
 					case NetIncomingMessageType.DebugMessage:
 					case NetIncomingMessageType.ErrorMessage:
 					case NetIncomingMessageType.WarningMessage:
 					case NetIncomingMessageType.VerboseDebugMessage:
-						string text = im.ReadString();
-						//Output(text);
+						string text = message.ReadString();
+						Console.WriteLine("Server has received: " + message.MessageType + "saying: " + text);
 						break;
 
 					case NetIncomingMessageType.StatusChanged:
-						NetConnectionStatus status = (NetConnectionStatus)im.ReadByte();
-						Console.WriteLine("Status changed: " + status);
-
-						if(status == NetConnectionStatus.Connected)
-                        {
-							string reason = im.ReadString();
-							//Output(NetUtility.ToHexString(im.SenderConnection.RemoteUniqueIdentifier) + " " + status + ": " + reason);
-
-							if (status == NetConnectionStatus.Connected)
-								Console.WriteLine("Remote hail: " + im.SenderConnection.RemoteHailMessage.ReadString());
-							connectedPlayers.Add(im.SenderConnection);
-							this.SpawnJet(im.SenderConnection.RemoteUniqueIdentifier);
-
-							//UpdateConnectionsList();
-						}
+						ProcessConnectionMessage(message);
 						break;
 					case NetIncomingMessageType.Data:
-						ProcessMessage(im, gameTime);
+						ProcessMessage(message, gameTime);
 						break;
 					default:
-						Console.WriteLine("Unhandled message type: " + im.MessageType + " " + im.LengthBytes + " bytes " + im.DeliveryMethod + "|" + im.SequenceChannel);
+						Console.WriteLine("Unhandled message type: " + message.MessageType + " " + message.LengthBytes + " bytes " + message.DeliveryMethod + "|" + message.SequenceChannel);
 						break;
 				}
-				serverPeer.Recycle(im);
+				serverPeer.Recycle(message);
 			}
 		}
 
+		private void ProcessConnectionMessage(NetIncomingMessage message)
+        {
+			NetConnectionStatus status = (NetConnectionStatus)message.ReadByte();
+			Console.WriteLine("Status changed: " + status);
+
+			if (status == NetConnectionStatus.Connected)
+			{
+				connectedPlayers.Add(message.SenderConnection);
+				this.SpawnJet(message.SenderConnection.RemoteUniqueIdentifier);
+			}
+			// TODO: Handle disconnect
+			else if (status == NetConnectionStatus.Connected)
+			{
+				Console.WriteLine("Remote hail: " + message.SenderConnection.RemoteHailMessage.ReadString());
+			}
+
+		}
 		private void ProcessMessage(NetIncomingMessage message, GameTime gameTime)
 		{
 			byte messageType = message.ReadByte();
@@ -134,9 +136,7 @@ namespace AtariJetFighter.GameMachineObjects
 		}
 
 		private void ProcessUserControlMessage(NetIncomingMessage message, GameTime gameTime)
-        {
-			//message.Write((byte)UpdateMessageType.UserControl);
-			//message.Write((byte)command);
+        {			
 			Controls direction = (Controls)message.ReadByte();
 
             if (direction == Controls.Shoot)
@@ -166,22 +166,19 @@ namespace AtariJetFighter.GameMachineObjects
 
 		private void SendSpawnNewBulletMessage(Bullet bullet)
         {
-			NetOutgoingMessage spawnBulletMessage = serverPeer.CreateMessage();
-			SpawnNewBulletMessage.FillMessage(spawnBulletMessage, bullet.ObjectID,bullet.Position,bullet.Rotation);
+			 var spawnBulletMessage = SpawnNewBulletMessage.CreateMessage(serverPeer, bullet.ObjectID,bullet.Position,bullet.Rotation);
 			this.SendMessagetoEverybody(spawnBulletMessage);
 
 		}
 		private void SendSpawnNewJetMessage(Jet jet)
         {
-			NetOutgoingMessage spawnPlayerMessage = serverPeer.CreateMessage();
-			SpawnPlayerMessage.FillMessage(spawnPlayerMessage, jet.ObjectID, jet.PlayerId, jet.Position, jet.Rotation);
+			NetOutgoingMessage spawnPlayerMessage = SpawnPlayerMessage.CreateMessage(this.serverPeer, jet.ObjectID, jet.PlayerId, jet.Position, jet.Rotation);
 			this.SendMessagetoEverybody(spawnPlayerMessage);    
         }
 		private void SendUpdateTransformMessage(GameObject gameObject)
         {
-			NetOutgoingMessage om = serverPeer.CreateMessage();
-			UpdateTransformMessage.FillMessage(om, gameObject.ObjectID, gameObject.Position, gameObject.Rotation);
-			this.SendMessagetoEverybody(om);
+			NetOutgoingMessage updateTransformMessage = UpdateTransformMessage.CreateMessage(this.serverPeer, gameObject.ObjectID, gameObject.Position, gameObject.Rotation);
+			this.SendMessagetoEverybody(updateTransformMessage);
 		}
 
 		private void SendMessagetoEverybody(NetOutgoingMessage message, NetDeliveryMethod  method = NetDeliveryMethod.Unreliable)
