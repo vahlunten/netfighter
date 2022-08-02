@@ -27,6 +27,11 @@ namespace AtariJetFighter.GameEngine.GameObjects
         public float Velocity { get; set; }
 
         /// <summary>
+        /// Color code of the object.
+        /// </summary>
+        public byte Color { get; set; }
+
+        /// <summary>
         /// This method is responsible for moving GameObject on the screen. It's the same for Jet and Bullet since they move in the same way.
         /// Direction vector is calculated based on Rotation property. This vector is then multiplied by Velocity and gameTime.Elapsed to 
         /// ensure the same performance on every machine.

@@ -227,7 +227,7 @@ namespace AtariJetFighter.GameMachineObjects
 		private void Shoot(NetIncomingMessage message)
 		{
 			var playerJet = this.GetClientJet(message.SenderConnection.RemoteUniqueIdentifier);
-			var newBullet = new Bullet(playerJet.PlayerId, GetObjectId(), playerJet.Position, playerJet.Rotation);
+			var newBullet = new Bullet(playerJet.PlayerId, GetObjectId(), playerJet.Position, playerJet.Rotation, playerJet.Color);
 			this.Bullets.Add(newBullet);
 			SendSpawnNewBulletMessage(newBullet);
 
@@ -235,13 +235,13 @@ namespace AtariJetFighter.GameMachineObjects
 
 		private void SendSpawnNewBulletMessage(Bullet bullet)
 		{
-			var spawnBulletMessage = SpawnNewBulletMessage.CreateMessage(serverPeer, bullet.ObjectID, bullet.Position, bullet.Rotation);
+			var spawnBulletMessage = SpawnNewBulletMessage.CreateMessage(serverPeer, bullet.ObjectID, bullet.Position, bullet.Rotation, bullet.Color);
 			this.SendMessagetoEverybody(spawnBulletMessage);
 
 		}
 		private void SendSpawnNewJetMessage(Jet jet)
 		{
-			NetOutgoingMessage spawnPlayerMessage = SpawnPlayerMessage.CreateMessage(this.serverPeer, jet.ObjectID, jet.PlayerId, jet.Position, jet.Rotation);
+			NetOutgoingMessage spawnPlayerMessage = SpawnPlayerMessage.CreateMessage(this.serverPeer, jet.ObjectID, jet.PlayerId, jet.Position, jet.Rotation, jet.Color);
 			this.SendMessagetoEverybody(spawnPlayerMessage);
 		}
 		private void SendUpdateTransformMessage(GameObject gameObject)
@@ -262,8 +262,9 @@ namespace AtariJetFighter.GameMachineObjects
 				playerID,
 				GetObjectId(),
 				new Vector2(RandomNumberGenerator.Next(0, Constants.ScreenWidth), RandomNumberGenerator.Next(0, Constants.ScreenWidth)),
-				(float)RandomNumberGenerator.NextDouble() * 2.0f
-				);
+				(float)RandomNumberGenerator.NextDouble() * 2.0f,
+				GetRandomFreeColor()
+				) ;
 			this.Jets.Add(newJet);
 
 			this.SendSpawnNewJetMessage(newJet);
@@ -285,7 +286,7 @@ namespace AtariJetFighter.GameMachineObjects
 		{
 			return this.Jets.Find(jet => jet.PlayerId == playerId);
 		}
-		// TODO: I feel dumb for writing this lol 
+
 		private byte GetObjectId()
 		{
 			for (byte newId = 0; newId < byte.MaxValue; newId++)
@@ -297,6 +298,16 @@ namespace AtariJetFighter.GameMachineObjects
 			}
 			throw new Exception("Developer of this application is an idiot");
 		}
+		private byte GetRandomFreeColor()
+        {
+			byte randomColorCode = (byte)RandomNumberGenerator.Next(0, 10);
+            while (Jets.Any(jet => jet.Color == randomColorCode))
+            {
+				randomColorCode = (byte)RandomNumberGenerator.Next(0, 10);
+            }
+			return randomColorCode;
+			
+        }
 		protected override void UnloadContent()
 		{
 			base.UnloadContent();

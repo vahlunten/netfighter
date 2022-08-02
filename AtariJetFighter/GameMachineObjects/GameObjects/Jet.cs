@@ -34,7 +34,7 @@ namespace AtariJetFighter.GameEngine.GameObjects
         /// <param name="objectId">Id of object in a scene.</param>
         /// <param name="spawnPosition">Initial position of the jet.</param>
         /// <param name="spawnRotation">Initial rotation of the jet.</param>
-        public Jet(long playerId, byte objectId, Vector2 spawnPosition, float spawnRotation)
+        public Jet(long playerId, byte objectId, Vector2 spawnPosition, float spawnRotation, byte color)
         {
             this.PlayerId = playerId;
             this.ObjectID = objectId;
@@ -44,6 +44,7 @@ namespace AtariJetFighter.GameEngine.GameObjects
             this.Velocity = 0.25f;
             this.ShotCoooldownLeft = 0f;
             this.SteeringVelocity = 0.0025f;
+            this.Color = color;
         }
         /// <summary>
         /// Steer method is called upon receiving UserControlMessage.

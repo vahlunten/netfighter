@@ -28,13 +28,15 @@ namespace AtariJetFighter.GameEngine.GameObjects
         /// <param name="objectId">Id of bullet inside scene.</param>
         /// <param name="spawnPosition">Initial position based on shooting jet position.</param>
         /// <param name="spawnRotation">Rotation based on shooting jet rotation.</param>
-        public Bullet(long shotById, byte objectId, Vector2 spawnPosition, float spawnRotation)
+        public Bullet(long shotById, byte objectId, Vector2 spawnPosition, float spawnRotation, byte color)
         {
             this.ShotByID = shotById;
             this.ObjectID = objectId;
             this.Position = spawnPosition;
             this.Rotation = spawnRotation;
             this.Velocity = 0.5f;
+            this.Color = color;
+
         }
         /// <summary>
         /// Updates bullet position and lifespan left.

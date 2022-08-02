@@ -6,7 +6,7 @@ namespace AtariJetFighter.Messages
     public static class SpawnPlayerMessage
 
     {
-        public static NetOutgoingMessage CreateMessage( NetServer netServer, byte objectId,long jetOwner, Vector2 position, float rotation)
+        public static NetOutgoingMessage CreateMessage( NetServer netServer, byte objectId,long jetOwner, Vector2 position, float rotation, byte color)
         {
             NetOutgoingMessage message = netServer.CreateMessage();
             message.Write((byte)UpdateMessageType.SpawnPlayer);
@@ -15,6 +15,7 @@ namespace AtariJetFighter.Messages
             message.Write(position.X);
             message.Write(position.Y);
             message.Write(rotation);
+            message.Write(color);
             return message;
 
         }

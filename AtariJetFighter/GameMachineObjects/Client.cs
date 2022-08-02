@@ -192,8 +192,9 @@ namespace AtariJetFighter.GameMachineObjects
             float positionX = message.ReadFloat();
             float positionY = message.ReadFloat();
             float rotation = message.ReadFloat();
+            byte color = message.ReadByte();
 
-            this.game.scene.AddJet(objectId, jetOwner, new Vector2(positionX, positionY), rotation, Color.White);
+            this.game.scene.AddJet(objectId, jetOwner, new Vector2(positionX, positionY), rotation, Constants.colors[color]);
         }
 
         private void ProcessDestroyObjectMessage(NetIncomingMessage message, UpdateMessageType type)
@@ -220,8 +221,9 @@ namespace AtariJetFighter.GameMachineObjects
             float positionX = message.ReadFloat();
             float positionY = message.ReadFloat();
             float rotation = message.ReadFloat();
+            byte color = message.ReadByte();
 
-            this.game.scene.AddBullet(objectId, new Vector2(positionX, positionY), rotation, Color.White);
+            this.game.scene.AddBullet(objectId, new Vector2(positionX, positionY), rotation, Constants.colors[color]);
         }
     }
 

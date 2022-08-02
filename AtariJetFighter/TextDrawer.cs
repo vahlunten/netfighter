@@ -8,44 +8,60 @@ using System.Threading.Tasks;
 
 namespace AtariJetFighter
 {
+    /// <summary>
+    /// Text Drawer is responsible for drawing "UI" elements while game is not running.
+    /// </summary>
     internal class TextDrawer : DrawableGameComponent
     {
 
         private SpriteFont font;
         private SpriteBatch spriteBatch;
         private JetFighterGame jfGame;
-
+        
         private string gameName = "ATARI .NET FIGHTER";
-        private Vector2 gameNameLength;
+        private Vector2 gameNameDimensions;
         private string newGame = "Press [ N ] to host a new game";
-        private Vector2 newGameLength;
+        private Vector2 newGameDimensions;
         private string joinGame = "Press [ J ] to join a running game";
-        private Vector2 joinGameLength;
+        private Vector2 joinGameDimensions;
         private string connecting = "Trying to connect to the server.";
-        private Vector2 connectingLength;
+        private Vector2 connectingDimensions;
         private string disconnected = "You had been disconnected from the server.";
-        private Vector2 disconnectedLength;
-        private string failedToConnect = "Client had failed to connect to the server after 5 second.\n" +
-            "               Press [ ESC ] to return to main menu";
-        private Vector2 failedToConnectLenght;
-        private float instructionsScale = 0.5f;
+        private Vector2 disconnectedDimensions;
+        private string failedToConnect = "Failed to connect to the server after 5 second.";
+        private Vector2 failedToConnectDimensions;
+        private string returnToMenu = "Press [ ESC ] to return to main menu";
+        private Vector2 returnToMenuDimensions;
+        private string exitGame = "Press [ ESC ] to quit game";
+        private Vector2 exitGameDimensions;
 
+        /// <summary>
+        /// Constructor calculates dimensions of all the strings. 
+        /// </summary>
+        /// <param name="game">Instance of the game.</param>
+        /// <param name="spriteBatch">Instance of game's SpriteBatch.</param>
+        /// <param name="font">Font sprite.</param>
         public TextDrawer(Game game, SpriteBatch spriteBatch, SpriteFont font) : base(game)
         {
             this.jfGame = (JetFighterGame)game;
             this.spriteBatch = spriteBatch;
             this.font = font;
 
-            gameNameLength = font.MeasureString(gameName);
-            Console.WriteLine(gameNameLength);
-            newGameLength = font.MeasureString(newGame) * instructionsScale;
-            joinGameLength = font.MeasureString(joinGame) * instructionsScale;
-            connectingLength = font.MeasureString(connecting);
-            disconnectedLength = font.MeasureString(disconnected);
-            failedToConnectLenght = font.MeasureString(failedToConnect);
-
+            gameNameDimensions = font.MeasureString(gameName);
+            Console.WriteLine(gameNameDimensions);
+            newGameDimensions = font.MeasureString(newGame);
+            joinGameDimensions = font.MeasureString(joinGame);
+            connectingDimensions = font.MeasureString(connecting);
+            disconnectedDimensions = font.MeasureString(disconnected);
+            failedToConnectDimensions = font.MeasureString(failedToConnect);
+            returnToMenuDimensions = font.MeasureString(returnToMenu);
+            exitGameDimensions = font.MeasureString(exitGame);
         }
 
+        /// <summary>
+        /// Draws UI on the screen. If the game is not Running.
+        /// </summary>
+        /// <param name="gameTime"></param>
         public override void Draw(GameTime gameTime)
         {
             GraphicsDevice.Clear(Color.Black);
@@ -53,18 +69,33 @@ namespace AtariJetFighter
             switch (jfGame.GameState)
             {
                 case GameMachineObjects.GameStateEnum.MainMenu:
-                    DrawMenu();
+                    {
+                        DrawStringCenter(gameName, gameNameDimensions, 1.0f, -200f);
+                        DrawStringCenter(newGame, newGameDimensions, 0.5f);
+                        DrawStringCenter(joinGame, joinGameDimensions, 0.5f, 50);
+                        DrawStringCenter(exitGame, exitGameDimensions, 0.5f, 350);
+                    }
                     break;
                 case GameMachineObjects.GameStateEnum.GameRunning:
                     break;
                 case GameMachineObjects.GameStateEnum.Disconnected:
-                    DrawStringCenter(disconnected, disconnectedLength, 0.4f);
+                    {
+                        DrawStringCenter(disconnected, disconnectedDimensions, 0.4f);
+                        DrawStringCenter(returnToMenu, returnToMenuDimensions, 0.5f, 350f);
+                    }
                     break;
                 case GameMachineObjects.GameStateEnum.Connecting:
-                    DrawStringCenter(connecting, connectingLength);
+                    {
+                        DrawStringCenter(connecting, connectingDimensions);
+                        DrawStringCenter(returnToMenu, returnToMenuDimensions, 0.5f, 350f);
+                    }
                     break;
                 case GameMachineObjects.GameStateEnum.FailedToConnect:
-                    DrawStringCenter(failedToConnect, failedToConnectLenght, 0.35f);
+                    {
+                        DrawStringCenter(failedToConnect, failedToConnectDimensions, 0.35f);
+                        DrawStringCenter(returnToMenu, returnToMenuDimensions, 0.5f, 350f);
+
+                    }
                     break;
                 default:
                     break;
@@ -73,54 +104,21 @@ namespace AtariJetFighter
             base.Draw(gameTime);
         }
 
-        public void DrawMenu()
-        {
-
-            this.jfGame.GraphicsDevice.Clear(Color.Black);
-            spriteBatch.DrawString(
-                font,
-                gameName,
-                new Vector2(((float)Constants.ScreenWidth - gameNameLength.X) / 2f, 150),
-                Color.White,
-                0.0f,
-                Vector2.Zero,
-                1.0f,
-                SpriteEffects.None,
-                1.0f);
-
-            this.jfGame.GraphicsDevice.Clear(Color.Black);
-            spriteBatch.DrawString(
-                font,
-                newGame,
-                new Vector2(((float)Constants.ScreenWidth - newGameLength.X) / 2f, 380),
-                Color.White,
-                0.0f,
-                Vector2.Zero,
-                instructionsScale,
-                SpriteEffects.None,
-                1.0f);
-
-            this.jfGame.GraphicsDevice.Clear(Color.Black);
-            spriteBatch.DrawString(
-                font,
-                joinGame,
-                new Vector2(((float)Constants.ScreenWidth - joinGameLength.X) / 2f, 450),
-                Color.White,
-                0.0f,
-                Vector2.Zero,
-                instructionsScale,
-                SpriteEffects.None,
-                1.0f);
-        }
-
-        private void DrawStringCenter(string text, Vector2 stringMeasurement, float scale = 0.5f)
+        /// <summary>
+        /// Draw string horizontally and vertically in the middle of the canvas. 
+        /// </summary>
+        /// <param name="text">Text to draw.</param>
+        /// <param name="stringMeasurement">Pre-calculated string dimensions.</param>
+        /// <param name="scale">Scale of displayed text.</param>
+        /// <param name="verticalOffset">Vertical offset to shift string up and down if needed.</param>
+        private void DrawStringCenter(string text, Vector2 stringMeasurement, float scale = 0.5f, float verticalOffset = 0)
         {
             Vector2 scaledMeasurement = stringMeasurement * scale;
             this.jfGame.GraphicsDevice.Clear(Color.Black);
             spriteBatch.DrawString(
                 font,
                 text,
-                new Vector2(((float)Constants.ScreenWidth - scaledMeasurement.X) / 2f, ((float)Constants.ScreenHeight - scaledMeasurement.Y)/2f),
+                new Vector2(((float)Constants.ScreenWidth - scaledMeasurement.X) / 2f, ((float)Constants.ScreenHeight - scaledMeasurement.Y) / 2f + verticalOffset),
                 Color.White,
                 0.0f,
                 Vector2.Zero,
