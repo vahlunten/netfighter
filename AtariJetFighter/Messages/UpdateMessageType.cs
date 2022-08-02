@@ -1,11 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace AtariJetFighter.Messages
+﻿namespace AtariJetFighter.Messages
 {
+
+    /// <summary>
+    /// Enumeration to represent different message types. 
+    /// </summary>
     public enum UpdateMessageType : byte
     {
         UserControl,

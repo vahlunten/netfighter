@@ -26,6 +26,10 @@ namespace AtariJetFighter.GameEngine.GameObjects
         /// Property to define how fast should jet shot rotate around pivot. 
         /// </summary>
         public float SteeringVelocity { get; set; }
+        /// <summary>
+        /// Score of this jet.
+        /// </summary>
+        public int Score { get; set; }
 
         /// <summary>
         /// Jet constructor is called upon connection of a user. 
@@ -45,6 +49,7 @@ namespace AtariJetFighter.GameEngine.GameObjects
             this.ShotCoooldownLeft = 0f;
             this.SteeringVelocity = 0.0025f;
             this.Color = color;
+            this.Score = 0;
         }
         /// <summary>
         /// Steer method is called upon receiving UserControlMessage.

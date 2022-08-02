@@ -1,25 +1,31 @@
-﻿using AtariJetFighter;
-using AtariJetFighter.Scene.SceneObjects;
+﻿using AtariJetFighter.Scene.SceneObjects;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace AtariJetFighter.Scene
 {
     /// <summary>
-    /// Scene object holds all the necessary data to by displayed on player's screen while game is running.
+    /// Scene object holds all the necessary data to by displayed on player's screen while the game is running.
+    /// Scene object is controller by Client which handles all the incomming messages from gameMachine.
     /// </summary>
     public class GameScene : DrawableGameComponent
     {
-        public bool isInitialized = false;
+        /// <summary>
+        /// Jetfighter game instance
+        /// </summary>
         private JetFighterGame game;
 
+        /// <summary>
+        /// Collection of jets of currently connected players.
+        /// </summary>
         private List<SceneJet> sceneJets = new List<SceneJet>();
+        /// <summary>
+        /// Collection of jets of currently active bullets.
+        /// </summary>
         private List<SceneBullet> sceneBullets = new List<SceneBullet>();
         public GameScene(JetFighterGame game) : base((Game) game)
         {
@@ -31,10 +37,13 @@ namespace AtariJetFighter.Scene
         }
         public override void Initialize()
         {
-            isInitialized = true;
             base.Initialize();
         }
         
+        /// <summary>
+        /// Draw all scene objects, scores and time left in current round. 
+        /// </summary>
+        /// <param name="gameTime"></param>
         public override void Draw(GameTime gameTime)
         {
            if(game.GameState == GameMachineObjects.GameStateEnum.GameRunning)
@@ -43,23 +52,24 @@ namespace AtariJetFighter.Scene
                 this.game.spriteBatch.Begin();
                 DrawPlayers();
                 DrawBullets();
+                DrawScores();
                 this.game.spriteBatch.End();
                 base.Draw(gameTime);
             }
             
         }
-
+        
         public void DrawPlayers()
         {
-            //Console.WriteLine("Coordinates: " + this.position);
-            //this.game.spriteBatch.Draw(this.game.jet, this.position, Color.White);
-
             foreach (var sceneJet in sceneJets)
             {
                 this.game.spriteBatch.Draw(this.game.jet, sceneJet.Position, null, sceneJet.color, sceneJet.Rotation + (float)Math.PI/2f, new Vector2(32,32), new Vector2(1), SpriteEffects.None, 0.50f);
+                // draw collider
+
+
             }
         }
-
+        
         public void DrawBullets()
         {
             foreach (var bullet in sceneBullets)
@@ -70,14 +80,31 @@ namespace AtariJetFighter.Scene
 
         public void DrawScores()
         {
-
+            for (int i = 0; i < sceneJets.Count; i++)
+            {
+                var jet = sceneJets[i];
+                DrawStringScore(jet.Score, jet.IsLocal, i * 150f, 50f, jet.color);
+            }
         }
 
-        public void AddJet(byte objectId, long ownerId,  Vector2 position, float rotation, Color color, int score = 0)
+        public void DrawStringScore(int score, bool isLocal, float horizontalOffset, float verticalOffset, Color color, float scale = 0.5f)
+        {
+            this.game.spriteBatch.DrawString(
+                this.game.font,
+                isLocal? $"{score} (YOU) " : $" {score}",
+                new Vector2(50 + horizontalOffset, verticalOffset),
+                color,
+                0.0f,
+                Vector2.Zero,
+                scale,
+                SpriteEffects.None,
+                0.5f);
+        }
+        public void AddJet(byte objectId, long ownerId,  Vector2 position, float rotation, Color color, bool isLocal, int score = 0)
         {
             if(sceneJets.Find(jet => jet.ObjectId == objectId) == null)
             {
-                this.sceneJets.Add(new SceneJet(objectId, ownerId, position, rotation, color));
+                this.sceneJets.Add(new SceneJet(objectId, ownerId, position, rotation, color, isLocal));
             }
         }
         public void AddBullet(byte objectId, Vector2 position, float rotation, Color color)
@@ -131,6 +158,13 @@ namespace AtariJetFighter.Scene
                 bullet.Position = position;
                 bullet.Rotation = rotation;
             }
+        }
+
+        public void UpdateScore(byte objectId, int score)
+        {
+            var jet = this.sceneJets.Find(jet => jet.ObjectId == objectId);
+            jet.Score = score;
+            Console.WriteLine("Score: " + jet.Score);
         }
 
 

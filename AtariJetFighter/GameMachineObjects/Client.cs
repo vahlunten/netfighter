@@ -168,6 +168,11 @@ namespace AtariJetFighter.GameMachineObjects
                         ProcessDestroyObjectMessage(message, UpdateMessageType.DestroyProjectile);
                     }
                     break;
+                case UpdateMessageType.UpdateScore:
+                    {
+                        ProcessScoreUpdateMessage(message);
+                    }
+                    break;
                 default:
                     break;
             }
@@ -194,7 +199,7 @@ namespace AtariJetFighter.GameMachineObjects
             float rotation = message.ReadFloat();
             byte color = message.ReadByte();
 
-            this.game.scene.AddJet(objectId, jetOwner, new Vector2(positionX, positionY), rotation, Constants.colors[color]);
+            this.game.scene.AddJet(objectId, jetOwner, new Vector2(positionX, positionY), rotation, Constants.colors[color], netClient.UniqueIdentifier == jetOwner);
         }
 
         private void ProcessDestroyObjectMessage(NetIncomingMessage message, UpdateMessageType type)
@@ -224,6 +229,16 @@ namespace AtariJetFighter.GameMachineObjects
             byte color = message.ReadByte();
 
             this.game.scene.AddBullet(objectId, new Vector2(positionX, positionY), rotation, Constants.colors[color]);
+        }
+
+
+        private void ProcessScoreUpdateMessage(NetIncomingMessage message)
+        {
+            Console.WriteLine("Process score update message.");
+            byte objectId = message.ReadByte();
+            int score = message.ReadInt32();
+
+            this.game.scene.UpdateScore(objectId, score);
         }
     }
 

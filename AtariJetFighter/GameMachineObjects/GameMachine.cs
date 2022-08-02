@@ -29,7 +29,7 @@ namespace AtariJetFighter.GameMachineObjects
 		/// <summary>
 		/// Collection of currently spawned bullets. 
 		/// </summary>
-		private List<Bullet> Bullets;
+		private List<Bullet> Bullets; 
 
 		/// <summary>
 		/// Bullets to be removed in next tick.
@@ -135,7 +135,7 @@ namespace AtariJetFighter.GameMachineObjects
 		}
 		private void SendObjectDestroyMessage(UpdateMessageType objType, byte objectId)
 		{
-			var message = DestroyGameObject.CreateMessage(serverPeer, objType, objectId);
+			var message = DestroyGameObjectMessage.CreateMessage(serverPeer, objType, objectId);
 			this.SendMessagetoEverybody(message);
 		}
 		private void processMessages(GameTime gameTime)
@@ -218,6 +218,17 @@ namespace AtariJetFighter.GameMachineObjects
 
 		}
 
+		private void UpdateJetScore(byte objectId, int score)
+        {
+			var updatedJet = GetClientJet(objectId);
+			updatedJet.Score = score;
+
+			var scoreUpdateMessage = UpdateScoreMessage.CreateMessage(this.serverPeer, objectId, score);
+			SendMessagetoEverybody(scoreUpdateMessage, NetDeliveryMethod.Unreliable);
+
+        }
+
+		
 		private void SteerJet(NetIncomingMessage message, GameTime gameTime, Controls direction)
 		{
 			var playerJet = this.GetClientJet(message.SenderConnection.RemoteUniqueIdentifier);
@@ -227,6 +238,9 @@ namespace AtariJetFighter.GameMachineObjects
 		private void Shoot(NetIncomingMessage message)
 		{
 			var playerJet = this.GetClientJet(message.SenderConnection.RemoteUniqueIdentifier);
+
+			//TODO: delete thsi
+			UpdateJetScore(playerJet.ObjectID, playerJet.Score + 1);
 			var newBullet = new Bullet(playerJet.PlayerId, GetObjectId(), playerJet.Position, playerJet.Rotation, playerJet.Color);
 			this.Bullets.Add(newBullet);
 			SendSpawnNewBulletMessage(newBullet);
@@ -287,6 +301,10 @@ namespace AtariJetFighter.GameMachineObjects
 			return this.Jets.Find(jet => jet.PlayerId == playerId);
 		}
 
+		private Jet GetClientJet(byte objectId)
+		{
+			return this.Jets.Find(jet => jet.ObjectID == objectId);
+		}
 		private byte GetObjectId()
 		{
 			for (byte newId = 0; newId < byte.MaxValue; newId++)

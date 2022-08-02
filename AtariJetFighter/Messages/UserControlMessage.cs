@@ -1,15 +1,15 @@
 ﻿using Lidgren.Network;
-using Microsoft.Xna.Framework;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace AtariJetFighter.Messages
 {
     public static class UserControlMessage
     {
+        /// <summary>
+        /// This message is sent when player presses control keys.
+        /// </summary>
+        /// <param name="netClient">NetClient instance.</param>
+        /// <param name="command">Control command sent by client. Either: Left, Right or Shoot.</param>
+        /// <returns></returns>
         public static NetOutgoingMessage CreateMessage(NetClient netClient, Controls command)
         {
             NetOutgoingMessage message = netClient.CreateMessage();

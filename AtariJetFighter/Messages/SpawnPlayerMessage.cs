@@ -6,6 +6,16 @@ namespace AtariJetFighter.Messages
     public static class SpawnPlayerMessage
 
     {
+        /// <summary>
+        /// This message is used to spawn player's jet.
+        /// </summary>
+        /// <param name="netServer">NetServer instance</param>
+        /// <param name="objectId">Unique object identifier.</param>
+        /// <param name="jetOwner">NetClient ID - owner of a jet.</param>
+        /// <param name="position">Initial jet position.</param>
+        /// <param name="rotation">Initial jet rotation.</param>
+        /// <param name="color"> Jet color.</param>
+        /// <returns></returns>
         public static NetOutgoingMessage CreateMessage( NetServer netServer, byte objectId,long jetOwner, Vector2 position, float rotation, byte color)
         {
             NetOutgoingMessage message = netServer.CreateMessage();

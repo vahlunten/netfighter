@@ -5,17 +5,26 @@ namespace AtariJetFighter
 {
     internal static class Constants
     {
+        /// <summary>
+        /// Canvas resolution width.
+        /// </summary>
         public const int ScreenWidth = 800;
+        /// <summary>
+        /// Canvas resolution height.
+        /// </summary>
         public const int ScreenHeight = 800;
 
+        /// <summary>
+        /// Collection of possible colors for jets.
+        /// </summary>
         public static Dictionary<byte, Color> colors = new Dictionary<byte, Color>
         {
-            { 0, Color.MediumTurquoise },
+            { 0, Color.Fuchsia },
             { 1, Color.Green },
             { 2, Color.Yellow },
-            { 3, Color.BlueViolet},
+            { 3, Color.Chocolate},
             { 4, Color.Red},
-            { 5, Color.Aquamarine},
+            { 5, Color.Blue},
             { 6, Color.Cyan},
             { 7, Color.PeachPuff},
             { 8, Color.Purple},
