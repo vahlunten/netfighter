@@ -11,11 +11,11 @@ namespace AtariJetFighter.GameEngine.GameObjects
         /// <summary>
         /// Amount of time bullet lives.
         /// </summary>
-        public float Lifespan { get; set; } =  5.0f;
+        public float Lifespan { get; set; } =  3.0f;
         /// <summary>
         /// Amount of time of bullets life left. This value is reduced each tick. 
         /// </summary>
-        public float LifespanLeft { get; set; }  = 5.0f;
+        public float LifespanLeft { get; set; }  = 3.0f;
         /// <summary>
         /// ID of player, who shot the bullet. 
         /// </summary>
@@ -34,7 +34,7 @@ namespace AtariJetFighter.GameEngine.GameObjects
             this.ObjectID = objectId;
             this.Position = spawnPosition;
             this.Rotation = spawnRotation;
-            this.Velocity = 0.4f;
+            this.Velocity = 0.5f;
         }
         /// <summary>
         /// Updates bullet position and lifespan left.

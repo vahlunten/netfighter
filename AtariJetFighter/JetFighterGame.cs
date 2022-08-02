@@ -29,15 +29,15 @@ namespace AtariJetFighter
             _graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
-           
+
         }
 
         protected override void Initialize()
         {
             // TODO: Add your initialization logic here
             _graphics.IsFullScreen = false;
-            _graphics.PreferredBackBufferWidth = 800;
-            _graphics.PreferredBackBufferHeight = 800;
+            _graphics.PreferredBackBufferWidth = Constants.ScreenWidth;
+            _graphics.PreferredBackBufferHeight = Constants.ScreenHeight;
             this.IsMouseVisible = false;
             _graphics.ApplyChanges();
             base.Initialize();
@@ -79,10 +79,15 @@ namespace AtariJetFighter
                         Console.WriteLine("Key J has been Pressed, connecting as a client");
                         this.JoinGame();
                     }
-                        break;
+                    break;
                 case GameStateEnum.GameRunning:
+                case GameStateEnum.Connecting:
+                case GameStateEnum.Disconnected:
+                case GameStateEnum.FailedToConnect:
                     if (InputController.hasBeenPressed(Keys.Escape))
+                    {
                         ReturntoMainMenu();
+                    }
                     break;
                 default:
                     break;
@@ -98,26 +103,36 @@ namespace AtariJetFighter
 
         private void ReturntoMainMenu()
         {
+            this.Components.Remove(scene);
+            this.scene = null;
+            this.Components.Remove(client);
+
+            client.netClient.Disconnect("bye");
+            if (client.isHost)
+            {
+                this.gameMachine.Stop();
+                this.Components.Remove(this.gameMachine);
+                this.gameMachine = null;
+            }
+            this.client = null;
             this.GameState = GameStateEnum.MainMenu;
-            // TODO: Properly stop server peer, notify all players about server disconnected
         }
 
         private void HostGame()
         {
             this.gameMachine = new GameMachine(this, 14242);
             this.Components.Add(this.gameMachine);
-            JoinGame();
+            JoinGame(true);
         }
-        private void JoinGame()
+        private void JoinGame(bool isHost = false)
         {
             this.scene = new GameScene(this);
             this.Components.Add(this.scene);
 
-            this.client = new Client(this, 14242);
+            this.client = new Client(this, 14242, isHost);
             this.Components.Add(this.client);
 
             sceneInitialized = true;
-            GameState = GameStateEnum.GameRunning;
         }
     }
 }

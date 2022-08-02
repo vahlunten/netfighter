@@ -37,12 +37,15 @@ namespace AtariJetFighter.Scene
         
         public override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Color.Black);
-            this.game.spriteBatch.Begin();
-            DrawPlayers();
-            DrawBullets();
-            this.game.spriteBatch.End();
-            base.Draw(gameTime);
+           if(game.GameState == GameMachineObjects.GameStateEnum.GameRunning)
+            {
+                GraphicsDevice.Clear(Color.Black);
+                this.game.spriteBatch.Begin();
+                DrawPlayers();
+                DrawBullets();
+                this.game.spriteBatch.End();
+                base.Draw(gameTime);
+            }
             
         }
 
@@ -89,9 +92,27 @@ namespace AtariJetFighter.Scene
         }
         public void AddBullet(byte objectId, Vector2 position, float rotation, Color color)
         {
-            if (sceneJets.Find(bullet => bullet.ObjectId == objectId) == null)
+            if (sceneBullets.Find(bullet => bullet.ObjectId == objectId) == null)
             {
                 this.sceneBullets.Add(new SceneBullet(objectId, position, rotation, color));
+            }
+        }
+
+        public void RemoveJet(byte objectId)
+        {
+            var removedJet = sceneJets.Find(jet => jet.ObjectId == objectId);
+            if (removedJet != null)
+            {
+                this.sceneJets.Remove(removedJet);
+            }
+        }
+
+        public void RemoveBullet(byte objectId)
+        {
+            var removedBullet = sceneBullets.Find(jet => jet.ObjectId == objectId);
+            if (removedBullet != null)
+            {
+                this.sceneBullets.Remove(removedBullet);
             }
         }
 
@@ -106,12 +127,6 @@ namespace AtariJetFighter.Scene
                 jet.Position = position;
                 jet.Rotation = rotation;
             }
-            //this.position = position;
-            //if (position.X > 800)
-            //{
-            //    position.X = 0f;
-            //}
-            //this.rotation = rotation;
         }
 
         public void UpdateBullet(byte objectId, Vector2 position, float rotation)
@@ -126,12 +141,6 @@ namespace AtariJetFighter.Scene
                 bullet.Position = position;
                 bullet.Rotation = rotation;
             }
-            //this.position = position;
-            //if (position.X > 800)
-            //{
-            //    position.X = 0f;
-            //}
-            //this.rotation = rotation;
         }
 
 
