@@ -19,7 +19,9 @@ namespace AtariJetFighter.GameEngine.GameObjects
             this.ObjectID = objectId;
             this.Position = spawnPosition;
             this.Rotation = spawnRotation;
-            this.Velocity = 150f;
+            this.Velocity = 0.4f;
         }
+        
+       
     }
 }

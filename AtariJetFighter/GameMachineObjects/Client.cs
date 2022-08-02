@@ -4,21 +4,16 @@ using Lidgren.Network;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace AtariJetFighter.GameMachineObjects
 {
-    class Client: DrawableGameComponent
+    class Client : DrawableGameComponent
     {
         private NetClient netClient;
         private int port;
-        private double elapsed = 500;
         private JetFighterGame game;
 
-        public Client( JetFighterGame game, int port):base((Game)game)
+        public Client(JetFighterGame game, int port) : base((Game)game)
         {
             this.port = port;
             this.game = game;
@@ -46,20 +41,20 @@ namespace AtariJetFighter.GameMachineObjects
             if (InputController.keyIsPressed(Keys.Left))
             {
                 SendUserControlMessage(Controls.Left);
-                
+
             }
             else if (InputController.keyIsPressed(Keys.Right))
             {
                 SendUserControlMessage(Controls.Right);
             }
-            else if (InputController.keyIsPressed(Keys.Space))
+            else if (InputController.hasBeenPressed(Keys.Space))
             {
                 SendUserControlMessage(Controls.Shoot);
             }
         }
         public void SendUserControlMessage(Controls command)
         {
-            Console.WriteLine("Sending user control message: " + command.ToString());
+            //Console.WriteLine("Sending user control message: " + command.ToString());
             NetOutgoingMessage message = netClient.CreateMessage();
             UserControlMessage.FillMessage(message, command);
             netClient.SendMessage(message, NetDeliveryMethod.UnreliableSequenced);
@@ -114,13 +109,26 @@ namespace AtariJetFighter.GameMachineObjects
         private void ProcessMessage(NetIncomingMessage message)
         {
             byte messageType = message.ReadByte();
-            switch (messageType)
+            switch ((UpdateMessageType)messageType)
             {
-                case (byte)UpdateMessageType.UpdateTransform:
-                {
-                    this.ProcessTransformMessage(message);
+                case UpdateMessageType.UpdateTransform:
+                    {
+                        this.ProcessTransformMessage(message);
+                    }
                     break;
-                }
+
+                case UpdateMessageType.SpawnPlayer:
+                    {
+                        this.ProcessNewPlayerMessage(message);
+
+                    }
+                    break;
+                case UpdateMessageType.SpawnProjectile:
+                    {
+                        this.ProcessNewProjectileMessage(message);
+
+                    }
+                    break;
 
                 default:
                     break;
@@ -133,10 +141,34 @@ namespace AtariJetFighter.GameMachineObjects
             float positionX = message.ReadFloat();
             float positionY = message.ReadFloat();
             float rotation = message.ReadFloat();
+            this.game.scene.UpdateJet(objectId, new Vector2(positionX, positionY), rotation);
+            this.game.scene.UpdateBullet(objectId, new Vector2(positionX, positionY), rotation);
 
-            this.game.scene.UpdateJet(new Vector2(positionX, positionY), rotation);
         }
 
+        private void ProcessNewPlayerMessage(NetIncomingMessage message)
+        {
+            Console.WriteLine("Process new player message ");
+            byte objectId = message.ReadByte();
+            long jetOwner = message.ReadInt64();
+            float positionX = message.ReadFloat();
+            float positionY = message.ReadFloat();
+            float rotation = message.ReadFloat();
+
+            this.game.scene.AddJet(objectId, jetOwner, new Vector2(positionX, positionY), rotation, Color.White);
+        }
+
+
+        private void ProcessNewProjectileMessage(NetIncomingMessage message)
+        {
+            Console.WriteLine("Process new projectile message ");
+            byte objectId = message.ReadByte();
+            float positionX = message.ReadFloat();
+            float positionY = message.ReadFloat();
+            float rotation = message.ReadFloat();
+
+            this.game.scene.AddBullet(objectId, new Vector2(positionX, positionY), rotation, Color.White);
+        }
     }
-    
+
 }

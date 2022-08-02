@@ -39,3 +39,4 @@ C:\Users\vladopisko\source\repos\AtariJetFighter\AtariJetFighter\bin\Debug\net5.
 C:\Users\vladopisko\source\repos\AtariJetFighter\AtariJetFighter\bin\Debug\net5.0-windows\Content\Font.xnb
 C:\Users\vladopisko\source\repos\AtariJetFighter\AtariJetFighter\bin\Debug\net5.0-windows\Content\bullet.xnb
 C:\Users\vladopisko\source\repos\AtariJetFighter\AtariJetFighter\bin\Debug\net5.0-windows\Content\jet.xnb
+C:\Users\vladopisko\source\repos\AtariJetFighter\AtariJetFighter\obj\Debug\net5.0-windows\AtariJetFighter.csproj.AssemblyReference.cache

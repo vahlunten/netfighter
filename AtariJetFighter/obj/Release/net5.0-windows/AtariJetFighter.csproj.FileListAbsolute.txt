@@ -39,3 +39,4 @@ C:\Users\vladopisko\source\repos\AtariJetFighter\AtariJetFighter\obj\Release\net
 C:\Users\vladopisko\source\repos\AtariJetFighter\AtariJetFighter\obj\Release\net5.0-windows\ref\AtariJetFighter.dll
 C:\Users\vladopisko\source\repos\AtariJetFighter\AtariJetFighter\obj\Release\net5.0-windows\AtariJetFighter.pdb
 C:\Users\vladopisko\source\repos\AtariJetFighter\AtariJetFighter\obj\Release\net5.0-windows\AtariJetFighter.genruntimeconfig.cache
+C:\Users\vladopisko\source\repos\AtariJetFighter\AtariJetFighter\obj\Release\net5.0-windows\AtariJetFighter.csproj.AssemblyReference.cache

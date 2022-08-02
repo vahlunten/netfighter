@@ -39,6 +39,7 @@ namespace AtariJetFighter
 
         public override void Draw(GameTime gameTime)
         {
+            GraphicsDevice.Clear(Color.Black);
             this.spriteBatch.Begin();
             if (jfGame.GameState == GameMachineObjects.GameStateEnum.MainMenu)
             {
