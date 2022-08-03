@@ -63,9 +63,10 @@ namespace AtariJetFighter.Scene
         {
             foreach (var sceneJet in sceneJets)
             {
-                this.game.spriteBatch.Draw(this.game.jet, sceneJet.Position, null, sceneJet.color, sceneJet.Rotation + (float)Math.PI/2f, new Vector2(32,32), new Vector2(1), SpriteEffects.None, 0.50f);
-                // draw collider
+                this.game.spriteBatch.Draw(this.game.jet, sceneJet.Position, null, sceneJet.color, sceneJet.Rotation, new Vector2(32), new Vector2(1), SpriteEffects.None, 0.50f);
 
+                // draw collider
+                this.game.spriteBatch.Draw(this.game.collider, sceneJet.Position, null, Color.White, 0f, new Vector2(22.5f), new Vector2(1), SpriteEffects.None, 0.50f);
 
             }
         }
@@ -74,7 +75,8 @@ namespace AtariJetFighter.Scene
         {
             foreach (var bullet in sceneBullets)
             {
-                this.game.spriteBatch.Draw(this.game.bullet, bullet.Position, null, bullet.color, bullet.Rotation + (float)Math.PI / 2f, new Vector2(32, 32), new Vector2(1), SpriteEffects.None, 0.50f);
+                this.game.spriteBatch.Draw(this.game.bullet, bullet.Position, null, bullet.color, bullet.Rotation, new Vector2(7.5f), new Vector2(1), SpriteEffects.None, 0.50f);
+                this.game.spriteBatch.Draw(this.game.bullet, bullet.Position, null, Color.White, 0f, new Vector2(0), new Vector2(0.5f), SpriteEffects.None, 0.50f);
             }
         }
 
@@ -160,9 +162,9 @@ namespace AtariJetFighter.Scene
             }
         }
 
-        public void UpdateScore(byte objectId, int score)
+        public void UpdateScore(long playerId, int score)
         {
-            var jet = this.sceneJets.Find(jet => jet.ObjectId == objectId);
+            var jet = this.sceneJets.Find(jet => jet.OwnerId == playerId);
             jet.Score = score;
             Console.WriteLine("Score: " + jet.Score);
         }

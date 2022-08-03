@@ -25,11 +25,14 @@ namespace AtariJetFighter.GameEngine.GameObjects
         /// Traveling speed of gameObject.
         /// </summary>
         public float Velocity { get; set; }
-
         /// <summary>
         /// Color code of the object.
         /// </summary>
         public byte Color { get; set; }
+        /// <summary>
+        /// Radius of object collider.
+        /// </summary>
+        public float ColliderRadius { get; set; }
 
         /// <summary>
         /// This method is responsible for moving GameObject on the screen. It's the same for Jet and Bullet since they move in the same way.

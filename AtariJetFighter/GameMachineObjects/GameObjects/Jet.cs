@@ -21,7 +21,7 @@ namespace AtariJetFighter.GameEngine.GameObjects
         /// <summary>
         /// Current time left to be able to shoot again.
         /// </summary>
-        public float ShotCoooldownLeft { get; set; }
+        public float ShotCooldownLeft { get; set; }
         /// <summary>
         /// Property to define how fast should jet shot rotate around pivot. 
         /// </summary>
@@ -44,12 +44,13 @@ namespace AtariJetFighter.GameEngine.GameObjects
             this.ObjectID = objectId;
             this.Position = spawnPosition;
             this.Rotation = spawnRotation;
-            this.ShotCooldown = 0.25f;
+            this.ShotCooldown = 0.5f;
             this.Velocity = 0.25f;
-            this.ShotCoooldownLeft = 0f;
+            this.ShotCooldownLeft = 0f;
             this.SteeringVelocity = 0.0025f;
             this.Color = color;
             this.Score = 0;
+            this.ColliderRadius = 22.5f;
         }
         /// <summary>
         /// Steer method is called upon receiving UserControlMessage.
@@ -72,5 +73,16 @@ namespace AtariJetFighter.GameEngine.GameObjects
             }
         }
 
+        /// <summary>
+        /// Updates bullet position and lifespan left.
+        /// </summary>
+        /// <param name="gameTime"></param>
+        public new void Update(GameTime gameTime)
+        {
+            base.Update(gameTime);
+            var elapsed = gameTime.ElapsedGameTime.TotalSeconds;
+            ShotCooldownLeft -= (float)elapsed;
+
+        }
     }
 }

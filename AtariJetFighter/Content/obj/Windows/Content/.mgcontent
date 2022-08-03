@@ -5,10 +5,12 @@
   <Config />
   <SourceFiles>
     <File>C:/Users/vladopisko/source/repos/AtariJetFighter/AtariJetFighter/Content/bullet.png</File>
+    <File>C:/Users/vladopisko/source/repos/AtariJetFighter/AtariJetFighter/Content/collider.png</File>
     <File>C:/Users/vladopisko/source/repos/AtariJetFighter/AtariJetFighter/Content/Font.spritefont</File>
     <File>C:/Users/vladopisko/source/repos/AtariJetFighter/AtariJetFighter/Content/jet.png</File>
   </SourceFiles>
   <DestFiles>
+    <File xsi:nil="true" />
     <File xsi:nil="true" />
     <File xsi:nil="true" />
     <File xsi:nil="true" />

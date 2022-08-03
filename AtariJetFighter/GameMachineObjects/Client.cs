@@ -121,10 +121,6 @@ namespace AtariJetFighter.GameMachineObjects
 
                         break;
                     case NetIncomingMessageType.Data:
-                        if (this.game.sceneInitialized)
-                        {
-
-                        }
                         this.ProcessMessage(message);
                         break;
                     default:
@@ -235,10 +231,10 @@ namespace AtariJetFighter.GameMachineObjects
         private void ProcessScoreUpdateMessage(NetIncomingMessage message)
         {
             Console.WriteLine("Process score update message.");
-            byte objectId = message.ReadByte();
+            long playerId = message.ReadInt64();
             int score = message.ReadInt32();
 
-            this.game.scene.UpdateScore(objectId, score);
+            this.game.scene.UpdateScore(playerId, score);
         }
     }
 

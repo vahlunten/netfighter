@@ -21,6 +21,7 @@ namespace AtariJetFighter
         public SpriteFont font;
         public Texture2D jet;
         public Texture2D bullet;
+        public Texture2D collider;
         public GameScene scene;
         public bool sceneInitialized = false;
 
@@ -34,7 +35,6 @@ namespace AtariJetFighter
 
         protected override void Initialize()
         {
-            // TODO: Add your initialization logic here
             _graphics.IsFullScreen = false;
             _graphics.PreferredBackBufferWidth = Constants.ScreenWidth;
             _graphics.PreferredBackBufferHeight = Constants.ScreenHeight;
@@ -49,6 +49,7 @@ namespace AtariJetFighter
             font = Content.Load<SpriteFont>("Font");
             jet = Content.Load<Texture2D>("jet");
             bullet = Content.Load<Texture2D>("bullet");
+            collider = Content.Load<Texture2D>("collider");
             Components.Add(new TextDrawer(this, spriteBatch, font));
         }
 

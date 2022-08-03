@@ -36,6 +36,7 @@ namespace AtariJetFighter.GameEngine.GameObjects
             this.Rotation = spawnRotation;
             this.Velocity = 0.5f;
             this.Color = color;
+            this.ColliderRadius = 7.5f;
 
         }
         /// <summary>

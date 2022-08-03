@@ -1,4 +1,5 @@
 ﻿using AtariJetFighter.GameEngine.GameObjects;
+using AtariJetFighter.GameMachineObjects.GameObjects;
 using AtariJetFighter.Messages;
 using Lidgren.Network;
 using Microsoft.Xna.Framework;
@@ -29,13 +30,15 @@ namespace AtariJetFighter.GameMachineObjects
 		/// <summary>
 		/// Collection of currently spawned bullets. 
 		/// </summary>
-		private List<Bullet> Bullets; 
+		private List<Bullet> Bullets;
 
 		/// <summary>
 		/// Bullets to be removed in next tick.
 		/// </summary>
 		private List<Bullet> dyingBullets;
 
+		private bool isSimulatingJet;
+		private SimulatedJet simulatedJet;
 		/// <summary>
 		/// GameMachine object constructor.
 		/// </summary>
@@ -46,15 +49,15 @@ namespace AtariJetFighter.GameMachineObjects
 			NetPeerConfiguration config = new NetPeerConfiguration("AtariNetFighter");
 			config.MaximumConnections = 10;
 			config.Port = port;
-			
+
 			config.PingInterval = 1f;
 			config.ConnectionTimeout = 1.5f;
 			this.Jets = new List<Jet>();
 			this.Bullets = new List<Bullet>();
 			this.dyingBullets = new List<Bullet>();
 			this.serverPeer = new NetServer(config);
-			
 
+			simulatedJet = new SimulatedJet();
 		}
 		/// <summary>
 		/// Starts the NetServer. 
@@ -87,25 +90,51 @@ namespace AtariJetFighter.GameMachineObjects
 			foreach (var bullet in Bullets)
 			{
 				bullet.Update(gameTime);
-				//Console.WriteLine(bullet.Position);
+				this.SendUpdateTransformMessage(bullet);
+			}
+
+			if(isSimulatingJet)
+            {
+				ControlSimulatedJet(gameTime);
+            }
+
+
+			base.Update(gameTime);
+		}
+
+        private void ControlSimulatedJet(GameTime gameTime)
+        {
+			this.simulatedJet.Update(gameTime);
+			if (this.simulatedJet.CurerntState == SimulatedJet.State.SteeringLeft)
+			{
+				this.SteerJet(this.simulatedJet.Id, gameTime, Controls.Left);
+			}
+			else if (this.simulatedJet.CurerntState == SimulatedJet.State.SteeringRight)
+			{
+				this.SteerJet(this.simulatedJet.Id, gameTime, Controls.Right);
+			}
+
+			if (this.simulatedJet.SecondsSinceLastShot > 3f)
+			{
+				this.simulatedJet.SecondsSinceLastShot = 0;
+				Shoot(this.simulatedJet.Id);
+			}
+		}
+
+        public void Stop()
+		{
+			this.serverPeer.Shutdown("Host said bye.");
+		}
+		private void RemoveExpiredBullets()
+		{
+			foreach (var bullet in Bullets)
+			{
 				if (bullet.LifespanLeft < 0)
 				{
 					this.dyingBullets.Add(bullet);
 				}
-				else
-				{
-					this.SendUpdateTransformMessage(bullet);
-				}
 			}
-			base.Update(gameTime);
-		}
 
-		public void Stop()
-        {
-			this.serverPeer.Shutdown("Host said bye.");
-        }
-		private void RemoveExpiredBullets()
-		{
 			foreach (var bullet in dyingBullets)
 			{
 				this.Bullets.Remove(bullet);
@@ -113,11 +142,31 @@ namespace AtariJetFighter.GameMachineObjects
 			}
 			this.dyingBullets.Clear();
 
-		}
+		}    
 		private void CheckForCollisions()
 		{
-			// check for collisions
-			// 
+			foreach (var jet in this.Jets)
+			{
+				foreach (var bullet in this.Bullets)
+				{
+
+					if (jet.PlayerId != bullet.ShotByID)
+					{
+						var distance = (bullet.Position - jet.Position).Length();
+                        if (distance < jet.ColliderRadius + bullet.ColliderRadius)
+                        {
+							dyingBullets.Add(bullet);
+							var clientJet = GetClientJet(bullet.ShotByID);
+                            if (clientJet != null)
+                            {
+								UpdateJetScore(bullet.ShotByID, clientJet.Score + 1);
+							}
+                        }
+					}
+					
+
+				}
+			}
 		}
 		private void DestroyObject(GameObject gameObject)
 		{
@@ -125,6 +174,12 @@ namespace AtariJetFighter.GameMachineObjects
 			{
 				SendObjectDestroyMessage(UpdateMessageType.DestroyPlayer, gameObject.ObjectID);
 				this.Jets.Remove((Jet)gameObject);
+
+				if(this.Jets.Count == 1)
+                {
+					EnableSimulatedJet();
+					this.UpdateRemoteJetList();
+				}
 			}
 			else if (gameObject is Bullet)
 			{
@@ -208,42 +263,46 @@ namespace AtariJetFighter.GameMachineObjects
 
 			if (direction == Controls.Shoot)
 			{
-				Shoot(message);
+				Shoot(message.SenderConnection.RemoteUniqueIdentifier);
 			}
 			else
 			{
-				SteerJet(message, gameTime, direction);
+				SteerJet(message.SenderConnection.RemoteUniqueIdentifier, gameTime, direction);
 			}
 
 
 		}
 
-		private void UpdateJetScore(byte objectId, int score)
-        {
-			var updatedJet = GetClientJet(objectId);
+		private void UpdateJetScore(long playerId, int score)
+		{
+			var updatedJet = GetClientJet(playerId);
 			updatedJet.Score = score;
 
-			var scoreUpdateMessage = UpdateScoreMessage.CreateMessage(this.serverPeer, objectId, score);
+			var scoreUpdateMessage = UpdateScoreMessage.CreateMessage(this.serverPeer, playerId, score);
 			SendMessagetoEverybody(scoreUpdateMessage, NetDeliveryMethod.Unreliable);
 
-        }
+		}
 
-		
-		private void SteerJet(NetIncomingMessage message, GameTime gameTime, Controls direction)
+
+		private void SteerJet(long playerId, GameTime gameTime, Controls direction)
 		{
-			var playerJet = this.GetClientJet(message.SenderConnection.RemoteUniqueIdentifier);
+			var playerJet = this.GetClientJet(playerId);
 			playerJet.Steer(gameTime, direction);
 		}
 
-		private void Shoot(NetIncomingMessage message)
+		private void Shoot(long playerId)
 		{
-			var playerJet = this.GetClientJet(message.SenderConnection.RemoteUniqueIdentifier);
+			var playerJet = this.GetClientJet(playerId);
 
-			//TODO: delete thsi
-			UpdateJetScore(playerJet.ObjectID, playerJet.Score + 1);
+			
 			var newBullet = new Bullet(playerJet.PlayerId, GetObjectId(), playerJet.Position, playerJet.Rotation, playerJet.Color);
-			this.Bullets.Add(newBullet);
-			SendSpawnNewBulletMessage(newBullet);
+
+            if (playerJet.ShotCooldownLeft <= 0)
+            {
+				playerJet.ShotCooldownLeft = playerJet.ShotCooldown;
+				this.Bullets.Add(newBullet);
+				SendSpawnNewBulletMessage(newBullet);
+			}
 
 		}
 
@@ -272,23 +331,35 @@ namespace AtariJetFighter.GameMachineObjects
 		private void SpawnJet(long playerID)
 		{
 			Console.WriteLine("spawn jet in gamemachine");
-			Jet newJet = new Jet(
-				playerID,
-				GetObjectId(),
-				new Vector2(RandomNumberGenerator.Next(0, Constants.ScreenWidth), RandomNumberGenerator.Next(0, Constants.ScreenWidth)),
-				(float)RandomNumberGenerator.NextDouble() * 2.0f,
-				GetRandomFreeColor()
-				) ;
-			this.Jets.Add(newJet);
+            Jet newJet = new Jet(
+                playerID,
+                GetObjectId(),
+                new Vector2(RandomNumberGenerator.Next(0, Constants.ScreenWidth), RandomNumberGenerator.Next(0, Constants.ScreenWidth)),
+                (float)RandomNumberGenerator.NextDouble() * 2.0f,
+                GetRandomFreeColor()
+                );
+            this.Jets.Add(newJet);
 
-			this.SendSpawnNewJetMessage(newJet);
+			// spawn simulated jets when the fist player spawns
+			if(Jets.Count == 1)
+            {
+				EnableSimulatedJet();
+			
+			// disable simulated jet when second player spawns
+			} else if(Jets.Count == 3)
+            {
+				DisableSimulatedJet();
+			}
+
+			//this.SendSpawnNewJetMessage(newJet);
 			// when new player connects to the game, we have to notify him about all clients that have connected before hi
-			this.UpdateRemoteJetList(newJet);
+			this.UpdateRemoteJetList();
+			this.ResetScore();
 
 
 		}
 
-		private void UpdateRemoteJetList(Jet newJetD)
+		private void UpdateRemoteJetList()
 		{
 			foreach (var jet in Jets)
 			{
@@ -301,10 +372,7 @@ namespace AtariJetFighter.GameMachineObjects
 			return this.Jets.Find(jet => jet.PlayerId == playerId);
 		}
 
-		private Jet GetClientJet(byte objectId)
-		{
-			return this.Jets.Find(jet => jet.ObjectID == objectId);
-		}
+		
 		private byte GetObjectId()
 		{
 			for (byte newId = 0; newId < byte.MaxValue; newId++)
@@ -317,18 +385,44 @@ namespace AtariJetFighter.GameMachineObjects
 			throw new Exception("Developer of this application is an idiot");
 		}
 		private byte GetRandomFreeColor()
-        {
-			byte randomColorCode = (byte)RandomNumberGenerator.Next(0, 10);
-            while (Jets.Any(jet => jet.Color == randomColorCode))
-            {
-				randomColorCode = (byte)RandomNumberGenerator.Next(0, 10);
-            }
-			return randomColorCode;
-			
-        }
-		protected override void UnloadContent()
 		{
-			base.UnloadContent();
+			byte randomColorCode = (byte)RandomNumberGenerator.Next(0, 10);
+			while (Jets.Any(jet => jet.Color == randomColorCode))
+			{
+				randomColorCode = (byte)RandomNumberGenerator.Next(0, 10);
+			}
+			return randomColorCode;
+
 		}
+
+		private void EnableSimulatedJet()
+        {
+			Jet simulatedJet = new Jet(
+					this.simulatedJet.Id,
+					GetObjectId(),
+					new Vector2(RandomNumberGenerator.Next(0, Constants.ScreenWidth), RandomNumberGenerator.Next(0, Constants.ScreenWidth)),
+					(float)RandomNumberGenerator.NextDouble() * 2.0f,
+					GetRandomFreeColor()
+					);
+			this.isSimulatingJet = true;
+			this.Jets.Add(simulatedJet);
+
+		}
+
+		private void DisableSimulatedJet()
+        {
+			var disconnectedPlayerJet = this.Jets.Find(jet => jet.PlayerId == this.simulatedJet.Id);
+			this.DestroyObject(disconnectedPlayerJet);
+			this.isSimulatingJet = false;
+		}
+
+		private void ResetScore()
+        {
+            foreach (var jet in this.Jets)
+            {
+				var scoreUpdateMessage = UpdateScoreMessage.CreateMessage(this.serverPeer, jet.PlayerId, 0);
+				SendMessagetoEverybody(scoreUpdateMessage, NetDeliveryMethod.Unreliable);
+			}
+        }
 	}
 }
