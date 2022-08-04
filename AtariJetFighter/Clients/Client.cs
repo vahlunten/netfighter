@@ -1,4 +1,5 @@
 ﻿using AtariJetFighter.Messages;
+using AtariJetFighter.Scene;
 using Lidgren.Network;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
@@ -8,23 +9,44 @@ namespace AtariJetFighter.GameMachineObjects
 {
     class Client : DrawableGameComponent
     {
+        /// <summary>
+        /// NetClient instance.
+        /// </summary>
         public NetClient netClient;
+        /// <summary>
+        /// Port where the player will connect on localhost.
+        /// </summary>
         private int port;
+        /// <summary>
+        /// Reference to the jetfighter game.
+        /// </summary>
         private JetFighterGame game;
+        /// <summary>
+        /// Indicates whether Client is also a host.
+        /// </summary>
         public bool isHost;
+        /// <summary>
+        /// Reference to the game scene.
+        /// </summary>
+        public GameScene scene;
+        /// <summary>
+        /// Server connection timout.
+        /// </summary>
         private float connectToServerTimeout = 5.0f;
         private bool wasConnected = false;
 
-        public Client(JetFighterGame game, int port, bool isHost = false) : base((Game)game)
+        public Client(JetFighterGame game, int port, GameScene scene, bool isHost = false) : base((Game)game)
         {
             this.port = port;
             this.game = game;
+            this.scene = scene;
             this.isHost = isHost;
             NetPeerConfiguration config = new NetPeerConfiguration("AtariNetFighter");
             config.AutoFlushSendQueue = true;
             config.PingInterval = 1f;
             config.ConnectionTimeout = 1.5f;
             netClient = new NetClient(config);
+
         }
         public override void Initialize()
         {
@@ -35,6 +57,11 @@ namespace AtariJetFighter.GameMachineObjects
             base.Initialize();
         }
 
+        /// <summary>
+        /// Client;s update method send user input to the server and processes all messages received from the server.
+        /// This method manipulates SceneObject
+        /// </summary>
+        /// <param name="gameTime"></param>
         public override void Update(GameTime gameTime)
         {
             if(netClient.ConnectionStatus == NetConnectionStatus.Disconnected)
@@ -63,6 +90,9 @@ namespace AtariJetFighter.GameMachineObjects
 
             base.Update(gameTime);
         }
+        /// <summary>
+        /// Process user input and send messages to the GameMachine.
+        /// </summary>
         public void SteerJet()
         {
             if (InputController.keyIsPressed(Keys.Left) && InputController.keyIsPressed(Keys.Right))
@@ -85,6 +115,10 @@ namespace AtariJetFighter.GameMachineObjects
                 SendUserControlMessage(Controls.Shoot);
             }
         }
+        /// <summary>
+        /// Sends user control messages to the server. 
+        /// </summary>
+        /// <param name="command"></param>
         public void SendUserControlMessage(Controls command)
         {
             //Console.WriteLine("Sending user control message: " + command.ToString());
@@ -92,6 +126,9 @@ namespace AtariJetFighter.GameMachineObjects
             netClient.SendMessage(userControMessage, NetDeliveryMethod.UnreliableSequenced);
         }
 
+        /// <summary>
+        /// Reads all the incomming messages from Server - GameMachine.
+        /// </summary>
         private void ProcessMessages()
         {
             NetIncomingMessage message;
@@ -131,6 +168,10 @@ namespace AtariJetFighter.GameMachineObjects
             }
 
         }
+        /// <summary>
+        /// Calls proper method for manipulationg GameScene
+        /// </summary>
+        /// <param name="message"></param>
         private void ProcessMessage(NetIncomingMessage message)
         {
             byte messageType = message.ReadByte();
@@ -169,9 +210,36 @@ namespace AtariJetFighter.GameMachineObjects
                         ProcessScoreUpdateMessage(message);
                     }
                     break;
+
+                case UpdateMessageType.RoundUpdate:
+                    {
+                        ProcessRoundUpdateMessage(message);
+                    }
+                    break;
                 default:
                     break;
             }
+        }
+
+        private void ProcessRoundUpdateMessage(NetIncomingMessage message)
+        {
+            bool roundInProgress = message.ReadBoolean();
+            float gameTime = message.ReadFloat();         
+            
+            if (this.scene.roundInProgress != roundInProgress)
+            {
+                if (roundInProgress == false)
+                {
+                    
+                }
+                if(roundInProgress == true)
+                {
+                    this.scene.ResetLeaderBoard();
+                }
+            }
+
+            this.scene.timer = gameTime;
+            this.scene.roundInProgress = roundInProgress;
         }
 
         private void ProcessTransformMessage(NetIncomingMessage message)
@@ -180,8 +248,8 @@ namespace AtariJetFighter.GameMachineObjects
             float positionX = message.ReadFloat();
             float positionY = message.ReadFloat();
             float rotation = message.ReadFloat();
-            this.game.scene.UpdateJet(objectId, new Vector2(positionX, positionY), rotation);
-            this.game.scene.UpdateBullet(objectId, new Vector2(positionX, positionY), rotation);
+            this.scene.UpdateJet(objectId, new Vector2(positionX, positionY), rotation);
+            this.scene.UpdateBullet(objectId, new Vector2(positionX, positionY), rotation);
 
         }
 
@@ -195,23 +263,20 @@ namespace AtariJetFighter.GameMachineObjects
             float rotation = message.ReadFloat();
             byte color = message.ReadByte();
 
-            this.game.scene.AddJet(objectId, jetOwner, new Vector2(positionX, positionY), rotation, Constants.colors[color], netClient.UniqueIdentifier == jetOwner);
+            this.scene.AddJet(objectId, jetOwner, new Vector2(positionX, positionY), rotation, Constants.Colors[color], netClient.UniqueIdentifier == jetOwner);
         }
 
         private void ProcessDestroyObjectMessage(NetIncomingMessage message, UpdateMessageType type)
         {
             Console.WriteLine("Process destroy object message ");
-
             byte objectId = message.ReadByte();
             if (type == UpdateMessageType.DestroyPlayer)
             {
-                this.game.scene.RemoveJet(objectId);
+                this.scene.RemoveJet(objectId);
             } else
             {
-                this.game.scene.RemoveBullet(objectId);
-
+                this.scene.RemoveBullet(objectId);
             }
-
 
         }
 
@@ -224,7 +289,7 @@ namespace AtariJetFighter.GameMachineObjects
             float rotation = message.ReadFloat();
             byte color = message.ReadByte();
 
-            this.game.scene.AddBullet(objectId, new Vector2(positionX, positionY), rotation, Constants.colors[color]);
+            this.scene.AddBullet(objectId, new Vector2(positionX, positionY), rotation, Constants.Colors[color]);
         }
 
 
@@ -234,7 +299,7 @@ namespace AtariJetFighter.GameMachineObjects
             long playerId = message.ReadInt64();
             int score = message.ReadInt32();
 
-            this.game.scene.UpdateScore(playerId, score);
+            this.scene.UpdateScore(playerId, score);
         }
     }
 

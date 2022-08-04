@@ -33,6 +33,9 @@ namespace AtariJetFighter
 
         }
 
+        /// <summary>
+        /// Initialize Monogane graphics.
+        /// </summary>
         protected override void Initialize()
         {
             _graphics.IsFullScreen = false;
@@ -43,6 +46,9 @@ namespace AtariJetFighter
             base.Initialize();
         }
 
+        /// <summary>
+        /// Load sprites and spritefonts.
+        /// </summary>
         protected override void LoadContent()
         {
             spriteBatch = new SpriteBatch(GraphicsDevice);
@@ -101,7 +107,9 @@ namespace AtariJetFighter
             GraphicsDevice.Clear(Color.Black);
             base.Draw(gameTime);
         }
-
+        /// <summary>
+        /// Disable Game machine, client and return to Main menu.
+        /// </summary>
         private void ReturntoMainMenu()
         {
             this.Components.Remove(scene);
@@ -119,18 +127,25 @@ namespace AtariJetFighter
             this.GameState = GameStateEnum.MainMenu;
         }
 
+        /// <summary>
+        /// Start a game machaine locally and connect to it.
+        /// </summary>
         private void HostGame()
         {
             this.gameMachine = new GameMachine(this, 14242);
             this.Components.Add(this.gameMachine);
             JoinGame(true);
         }
+        /// <summary>
+        /// Connect to hosts gameMachine.
+        /// </summary>
+        /// <param name="isHost"></param>
         private void JoinGame(bool isHost = false)
         {
             this.scene = new GameScene(this);
             this.Components.Add(this.scene);
 
-            this.client = new Client(this, 14242, isHost);
+            this.client = new Client(this, 14242, this.scene, isHost);
             this.Components.Add(this.client);
 
             sceneInitialized = true;

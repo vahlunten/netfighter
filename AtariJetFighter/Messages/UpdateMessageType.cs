@@ -13,6 +13,7 @@
         DestroyPlayer,
         DestroyProjectile,
         UpdateScore,
-        RestartGame
+        RestartGame,
+        RoundUpdate
     }
 }

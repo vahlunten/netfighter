@@ -17,7 +17,7 @@ namespace AtariJetFighter
         /// <summary>
         /// Collection of possible colors for jets.
         /// </summary>
-        public static Dictionary<byte, Color> colors = new Dictionary<byte, Color>
+        public static Dictionary<byte, Color> Colors = new Dictionary<byte, Color>
         {
             { 0, Color.Fuchsia },
             { 1, Color.Green },
@@ -29,6 +29,24 @@ namespace AtariJetFighter
             { 7, Color.PeachPuff},
             { 8, Color.Purple},
             { 9, Color.Khaki},
+
+        };
+
+        /// <summary>
+        /// Names of colors
+        /// </summary>
+        public static Dictionary<Color, string> ColorNames = new Dictionary<Color, string>
+        {
+            { Color.Fuchsia, "fuchsia" },
+            { Color.Green, "green"},
+            { Color.Yellow, "yellow" },
+            { Color.Chocolate, "chocolate"},
+            { Color.Red, "red"},
+            { Color.Blue, "blue"},
+            { Color.Cyan, "cyan"},
+            { Color.PeachPuff, "peach puff"},
+            { Color.Purple, "purple"},
+            { Color.Khaki, "khaki"},
 
         };
     }
