@@ -4,86 +4,91 @@ using Lidgren.Network;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using System;
+using System.Collections.Generic;
+using System.Net;
 
 namespace AtariJetFighter.GameMachineObjects
 {
-    class Client : DrawableGameComponent
+    public class Client : DrawableGameComponent
     {
         /// <summary>
         /// NetClient instance.
         /// </summary>
-        public NetClient netClient;
+        public NetClient NetClientInstance;
         /// <summary>
         /// Port where the player will connect on localhost.
         /// </summary>
-        private int port;
+        private int Port;
         /// <summary>
         /// Reference to the jetfighter game.
         /// </summary>
-        private JetFighterGame game;
+        private JetFighterGame GameInstance;
         /// <summary>
         /// Indicates whether Client is also a host.
         /// </summary>
-        public bool isHost;
+        public bool IsHost;
         /// <summary>
         /// Reference to the game scene.
         /// </summary>
-        public GameScene scene;
-        /// <summary>
-        /// Server connection timout.
-        /// </summary>
-        private float connectToServerTimeout = 5.0f;
-        private bool wasConnected = false;
+        public GameScene Scene;
+        private bool WasConnected = false;
 
+        public List<IPEndPoint> DiscoveredGames = new List<IPEndPoint>();     
         public Client(JetFighterGame game, int port, GameScene scene, bool isHost = false) : base((Game)game)
         {
-            this.port = port;
-            this.game = game;
-            this.scene = scene;
-            this.isHost = isHost;
+
+            this.GameInstance = game;
+            this.Scene = scene;
+            this.IsHost = isHost;
+            this.Port = port;
             NetPeerConfiguration config = new NetPeerConfiguration("AtariNetFighter");
             config.AutoFlushSendQueue = true;
             config.PingInterval = 1f;
             config.ConnectionTimeout = 1.5f;
-            netClient = new NetClient(config);
+            config.AcceptIncomingConnections = true;
+            config.EnableMessageType(NetIncomingMessageType.DiscoveryResponse);
 
+
+            NetClientInstance = new NetClient(config);
+
+        }
+        public void DiscoverGames()
+        {
+            for (int i = 0; i < 10; i++)
+            {
+                NetClientInstance.DiscoverLocalPeers(this.Port + i);
+            }
         }
         public override void Initialize()
         {
-            netClient.Start();
-            NetOutgoingMessage hail = netClient.CreateMessage("This is the hail message");
-            netClient.Connect("localhost", this.port, hail);
-            this.game.GameState = GameStateEnum.Connecting;
+            NetClientInstance.Start();
+            NetOutgoingMessage hail = NetClientInstance.CreateMessage("This is the hail message");
             base.Initialize();
+        }
+        public void Connect(string address, int port)
+        {
+            NetOutgoingMessage hail = NetClientInstance.CreateMessage("This is the hail message");
+            NetClientInstance.Connect(address, port, hail);
         }
 
         /// <summary>
-        /// Client;s update method send user input to the server and processes all messages received from the server.
+        /// Client's update method send user input to the server and processes all messages received from the server.
         /// This method manipulates SceneObject
         /// </summary>
         /// <param name="gameTime"></param>
         public override void Update(GameTime gameTime)
         {
-            if(netClient.ConnectionStatus == NetConnectionStatus.Disconnected)
+            if (NetClientInstance.ConnectionStatus == NetConnectionStatus.Disconnected && this.GameInstance.GameState != GameStateEnum.Discovering)
             {
-                if (wasConnected == false)
+                if (WasConnected == true)
                 {
-                    // update initial connection timeout
-                    this.connectToServerTimeout -= (float)gameTime.ElapsedGameTime.TotalSeconds;
-                    if (connectToServerTimeout < 0)
-                    {
-                        this.game.GameState = GameStateEnum.FailedToConnect;
-                    }
-                    return;
-                } else
-                {
-                    this.game.GameState = GameStateEnum.Disconnected;
+                    this.GameInstance.GameState = GameStateEnum.Disconnected;
                 }
             }
-            else if (netClient.ConnectionStatus == NetConnectionStatus.Connected)
+            else if (NetClientInstance.ConnectionStatus == NetConnectionStatus.Connected)
             {
-                this.game.GameState = GameStateEnum.GameRunning;
-                this.wasConnected = true;
+                this.GameInstance.GameState = GameStateEnum.GameRunning;
+                this.WasConnected = true;
             }
             ProcessMessages();
             SteerJet();
@@ -122,8 +127,8 @@ namespace AtariJetFighter.GameMachineObjects
         public void SendUserControlMessage(Controls command)
         {
             //Console.WriteLine("Sending user control message: " + command.ToString());
-            NetOutgoingMessage userControMessage = UserControlMessage.CreateMessage(this.netClient, command);
-            netClient.SendMessage(userControMessage, NetDeliveryMethod.UnreliableSequenced);
+            NetOutgoingMessage userControMessage = UserControlMessage.CreateMessage(this.NetClientInstance, command);
+            NetClientInstance.SendMessage(userControMessage, NetDeliveryMethod.UnreliableSequenced);
         }
 
         /// <summary>
@@ -132,7 +137,7 @@ namespace AtariJetFighter.GameMachineObjects
         private void ProcessMessages()
         {
             NetIncomingMessage message;
-            while ((message = netClient.ReadMessage()) != null)
+            while ((message = NetClientInstance.ReadMessage()) != null)
             {
                 // handle incoming message
                 switch (message.MessageType)
@@ -144,6 +149,17 @@ namespace AtariJetFighter.GameMachineObjects
                         string text = message.ReadString();
                         Console.Write(text);
                         break;
+                    case NetIncomingMessageType.DiscoveryResponse:
+                        bool isServer = message.ReadBoolean();
+                        Console.WriteLine("Client: Discovery Response sender: " + message.SenderEndPoint);
+                        if (isServer)
+                        {
+                            this.DiscoveredGames.Add(message.SenderEndPoint);
+                        }
+                        break;
+                    case NetIncomingMessageType.ConnectionApproval:
+                        this.NetClientInstance.Connect(message.SenderEndPoint);
+                        break;
                     case NetIncomingMessageType.StatusChanged:
                         NetConnectionStatus status = (NetConnectionStatus)message.ReadByte();
 
@@ -152,6 +168,8 @@ namespace AtariJetFighter.GameMachineObjects
 
                         if (status == NetConnectionStatus.Disconnected)
                             Console.WriteLine("Client: Disconnected from the server");
+                        if (status == NetConnectionStatus.RespondedConnect)
+                            Console.WriteLine("Client: Processing status message while responded connect");
 
                         string reason = message.ReadString();
                         Console.WriteLine(status.ToString() + ": " + reason);
@@ -161,10 +179,10 @@ namespace AtariJetFighter.GameMachineObjects
                         this.ProcessMessage(message);
                         break;
                     default:
-                        Console.WriteLine("Unhandled type: " + message.MessageType + " " + message.LengthBytes + " bytes");
+                        Console.WriteLine("Client: Unhandled type: " + message.MessageType + " " + message.LengthBytes + " bytes");
                         break;
                 }
-                netClient.Recycle(message);
+                NetClientInstance.Recycle(message);
             }
 
         }
@@ -177,32 +195,27 @@ namespace AtariJetFighter.GameMachineObjects
             byte messageType = message.ReadByte();
             switch ((UpdateMessageType)messageType)
             {
-                    case UpdateMessageType.UpdateTransform:
+                case UpdateMessageType.UpdateTransform:
                     {
                         this.ProcessTransformMessage(message);
                     }
                     break;
 
-                    case UpdateMessageType.SpawnPlayer:
+                case UpdateMessageType.SpawnPlayer:
                     {
                         this.ProcessNewPlayerMessage(message);
 
                     }
                     break;
-                    case UpdateMessageType.SpawnProjectile:
+                case UpdateMessageType.SpawnProjectile:
                     {
                         this.ProcessNewProjectileMessage(message);
                     }
                     break;
 
-                    case UpdateMessageType.DestroyPlayer: 
-                        {
-                        ProcessDestroyObjectMessage(message, UpdateMessageType.DestroyPlayer);
-                    }
-                    break;
-                    case UpdateMessageType.DestroyProjectile:
+                case UpdateMessageType.DestroyObject:
                     {
-                        ProcessDestroyObjectMessage(message, UpdateMessageType.DestroyProjectile);
+                        ProcessDestroyObjectMessage(message);
                     }
                     break;
                 case UpdateMessageType.UpdateScore:
@@ -224,22 +237,22 @@ namespace AtariJetFighter.GameMachineObjects
         private void ProcessRoundUpdateMessage(NetIncomingMessage message)
         {
             bool roundInProgress = message.ReadBoolean();
-            float gameTime = message.ReadFloat();         
-            
-            if (this.scene.roundInProgress != roundInProgress)
+            float gameTime = message.ReadFloat();
+
+            if (this.Scene.roundInProgress != roundInProgress)
             {
                 if (roundInProgress == false)
                 {
-                    
+
                 }
-                if(roundInProgress == true)
+                if (roundInProgress == true)
                 {
-                    this.scene.ResetLeaderBoard();
+                    this.Scene.ResetLeaderBoard();
                 }
             }
 
-            this.scene.timer = gameTime;
-            this.scene.roundInProgress = roundInProgress;
+            this.Scene.timer = gameTime;
+            this.Scene.roundInProgress = roundInProgress;
         }
 
         private void ProcessTransformMessage(NetIncomingMessage message)
@@ -248,8 +261,7 @@ namespace AtariJetFighter.GameMachineObjects
             float positionX = message.ReadFloat();
             float positionY = message.ReadFloat();
             float rotation = message.ReadFloat();
-            this.scene.UpdateJet(objectId, new Vector2(positionX, positionY), rotation);
-            this.scene.UpdateBullet(objectId, new Vector2(positionX, positionY), rotation);
+            this.Scene.UpdateObject(objectId, new Vector2(positionX, positionY), rotation);
 
         }
 
@@ -263,20 +275,12 @@ namespace AtariJetFighter.GameMachineObjects
             float rotation = message.ReadFloat();
             byte color = message.ReadByte();
 
-            this.scene.AddJet(objectId, jetOwner, new Vector2(positionX, positionY), rotation, Constants.Colors[color], netClient.UniqueIdentifier == jetOwner);
+            this.Scene.AddJet(objectId, jetOwner, new Vector2(positionX, positionY), rotation, Constants.Colors[color], NetClientInstance.UniqueIdentifier == jetOwner);
         }
 
-        private void ProcessDestroyObjectMessage(NetIncomingMessage message, UpdateMessageType type)
+        private void ProcessDestroyObjectMessage(NetIncomingMessage message)
         {
-            Console.WriteLine("Process destroy object message ");
-            byte objectId = message.ReadByte();
-            if (type == UpdateMessageType.DestroyPlayer)
-            {
-                this.scene.RemoveJet(objectId);
-            } else
-            {
-                this.scene.RemoveBullet(objectId);
-            }
+            DestroyGameObjectMessage.UpdateScene(message, this.Scene);
 
         }
 
@@ -289,7 +293,7 @@ namespace AtariJetFighter.GameMachineObjects
             float rotation = message.ReadFloat();
             byte color = message.ReadByte();
 
-            this.scene.AddBullet(objectId, new Vector2(positionX, positionY), rotation, Constants.Colors[color]);
+            this.Scene.AddBullet(objectId, new Vector2(positionX, positionY), rotation, Constants.Colors[color]);
         }
 
 
@@ -299,7 +303,7 @@ namespace AtariJetFighter.GameMachineObjects
             long playerId = message.ReadInt64();
             int score = message.ReadInt32();
 
-            this.scene.UpdateScore(playerId, score);
+            this.Scene.UpdateScore(playerId, score);
         }
     }
 

@@ -1,4 +1,5 @@
 C:\Users\vladopisko\source\repos\AtariJetFighter\AtariJetFighter\bin\Release\net5.0-windows\Content\bullet.xnb
+C:\Users\vladopisko\source\repos\AtariJetFighter\AtariJetFighter\bin\Release\net5.0-windows\Content\collider.xnb
 C:\Users\vladopisko\source\repos\AtariJetFighter\AtariJetFighter\bin\Release\net5.0-windows\Content\Font.xnb
 C:\Users\vladopisko\source\repos\AtariJetFighter\AtariJetFighter\bin\Release\net5.0-windows\Content\jet.xnb
 C:\Users\vladopisko\source\repos\AtariJetFighter\AtariJetFighter\bin\Release\net5.0-windows\AtariJetFighter.exe

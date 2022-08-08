@@ -17,7 +17,7 @@ namespace AtariJetFighter.Messages
         /// <param name="roundInProgress">If the round is in progress.</param>
         /// <param name="time"> Current game time.</param>
         /// <returns></returns>
-        public static NetOutgoingMessage CreateMessage(NetServer netServer, bool roundInProgress, float time, long winnerId = 0)
+        public static NetOutgoingMessage CreateMessage(NetPeer netServer, bool roundInProgress, float time, long winnerId = 0)
         {
             NetOutgoingMessage message = netServer.CreateMessage();
             message.Write((byte)UpdateMessageType.RoundUpdate);

@@ -15,7 +15,7 @@ namespace AtariJetFighter.Messages
         /// <param name="rotation">Bullet rotation </param>
         /// <param name="color">Color of the bullet based on the player's jet.</param>
         /// <returns></returns>
-        public static NetOutgoingMessage CreateMessage(NetServer netServer, byte objectId, Vector2 position, float rotation, byte color)
+        public static NetOutgoingMessage CreateMessage(NetPeer netServer, byte objectId, Vector2 position, float rotation, byte color)
         {
             NetOutgoingMessage message = netServer.CreateMessage();
             message.Write((byte)UpdateMessageType.SpawnProjectile);

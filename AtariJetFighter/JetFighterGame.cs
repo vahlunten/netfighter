@@ -17,7 +17,7 @@ namespace AtariJetFighter
         public GameStateEnum GameState;
 
         private GameMachine gameMachine;
-        private Client client;
+        public Client client;
         public SpriteFont font;
         public Texture2D jet;
         public Texture2D bullet;
@@ -87,10 +87,39 @@ namespace AtariJetFighter
                         this.JoinGame();
                     }
                     break;
+
+                case GameStateEnum.Discovering:
+                    { 
+                        if (InputController.hasBeenPressed(Keys.NumPad0))
+                        {
+                            this.client.Connect(this.client.DiscoveredGames[0].Address.ToString(), this.client.DiscoveredGames[0].Port);
+                        }
+                        if (InputController.hasBeenPressed(Keys.NumPad1))
+                        {
+                            this.client.Connect(this.client.DiscoveredGames[1].Address.ToString(), this.client.DiscoveredGames[1].Port);
+                        }
+
+                        if (InputController.hasBeenPressed(Keys.NumPad2))
+                        {
+                            this.client.Connect(this.client.DiscoveredGames[2].Address.ToString(), this.client.DiscoveredGames[2].Port);
+                        }
+                        if (InputController.hasBeenPressed(Keys.NumPad3))
+                        {
+                            this.client.Connect(this.client.DiscoveredGames[3].Address.ToString(), this.client.DiscoveredGames[3].Port);
+                        }
+                        if (InputController.hasBeenPressed(Keys.NumPad4))
+                        {
+                            this.client.Connect(this.client.DiscoveredGames[4].Address.ToString(), this.client.DiscoveredGames[4].Port);
+                        }
+
+                        if (InputController.hasBeenPressed(Keys.Escape))
+                        {
+                            ReturntoMainMenu();
+                        }
+                    }
+                    break;
                 case GameStateEnum.GameRunning:
-                case GameStateEnum.Connecting:
                 case GameStateEnum.Disconnected:
-                case GameStateEnum.FailedToConnect:
                     if (InputController.hasBeenPressed(Keys.Escape))
                     {
                         ReturntoMainMenu();
@@ -116,8 +145,8 @@ namespace AtariJetFighter
             this.scene = null;
             this.Components.Remove(client);
 
-            client.netClient.Disconnect("bye");
-            if (client.isHost)
+            client.NetClientInstance.Disconnect("bye");
+            if (client.IsHost)
             {
                 this.gameMachine.Stop();
                 this.Components.Remove(this.gameMachine);
@@ -144,9 +173,18 @@ namespace AtariJetFighter
         {
             this.scene = new GameScene(this);
             this.Components.Add(this.scene);
-
             this.client = new Client(this, 14242, this.scene, isHost);
             this.Components.Add(this.client);
+
+            if (isHost)
+            {
+                this.client.Connect("localhost", this.gameMachine.Port);
+            }
+            else
+            {
+                this.client.DiscoverGames();
+                this.GameState = GameStateEnum.Discovering;
+            }
 
             sceneInitialized = true;
         }

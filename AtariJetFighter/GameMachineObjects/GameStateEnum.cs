@@ -20,11 +20,10 @@
         /// <summary>
         /// Client is trying to connect to the server.
         /// </summary>
-        Connecting,
         /// <summary>
-        /// Client failed to connect to server.
+        /// Client has sent discovery message and is waiting for responses.
         /// </summary>
-        FailedToConnect,
+        Discovering
 
 
     }

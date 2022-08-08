@@ -13,7 +13,7 @@ namespace AtariJetFighter.Messages
         /// <param name="position">New position of updated object.</param>
         /// <param name="rotation">New rotation of updated object.</param>
         /// <returns></returns>
-        public static NetOutgoingMessage CreateMessage( NetServer netServer, byte objectId, Vector2 position, float rotation)
+        public static NetOutgoingMessage CreateMessage(NetPeer netServer, byte objectId, Vector2 position, float rotation)
         {
             NetOutgoingMessage message = netServer.CreateMessage();
             message.Write((byte)UpdateMessageType.UpdateTransform);

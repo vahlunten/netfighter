@@ -528,3 +528,4 @@ C:\Users\vladopisko\source\repos\AtariJetFighter\AtariJetFighter\obj\Release\net
 C:\Users\vladopisko\source\repos\AtariJetFighter\AtariJetFighter\obj\Release\net5.0-windows\win-x86\ref\AtariJetFighter.dll
 C:\Users\vladopisko\source\repos\AtariJetFighter\AtariJetFighter\obj\Release\net5.0-windows\win-x86\AtariJetFighter.pdb
 C:\Users\vladopisko\source\repos\AtariJetFighter\AtariJetFighter\obj\Release\net5.0-windows\win-x86\AtariJetFighter.genruntimeconfig.cache
+C:\Users\vladopisko\source\repos\AtariJetFighter\AtariJetFighter\bin\Release\net5.0-windows\win-x86\Content\collider.xnb

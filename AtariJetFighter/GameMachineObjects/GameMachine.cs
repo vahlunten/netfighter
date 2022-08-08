@@ -20,7 +20,7 @@ namespace AtariJetFighter.GameMachineObjects
 		/// <summary>
 		/// NetServer instance used for sending and receiving messages. 
 		/// </summary>
-		private NetServer NetServerInstance;
+		public NetServer NetServerInstance;
 		private Random RandomNumberGenerator = new Random();
 
 		/// <summary>
@@ -50,6 +50,8 @@ namespace AtariJetFighter.GameMachineObjects
 		private readonly float PauseDuration = 5.0f;
 		private float PauseDurationRemaining = 5.0f;
 
+		public int Port = 14242;
+
 		/// <summary>
 		/// GameMachine object constructor.
 		/// </summary>
@@ -61,36 +63,45 @@ namespace AtariJetFighter.GameMachineObjects
 			this.Jets = new List<Jet>();
 			this.Bullets = new List<Bullet>();
 			this.dyingBullets = new List<Bullet>();
+			this.Port = port;
 			simulatedJet = new SimulatedJet();
 
-			this.initializePeer(port);
+			this.initializePeer();
 		}
 		/// <summary>
 		/// Starts the NetServer. 
 		/// </summary>
 		public override void Initialize()
 		{
-			// start listening for connections
-			try
-			{
-				NetServerInstance.Start();
-			}
-			catch (Exception e)
-			{
-				Console.WriteLine(e.Message);
-				Console.WriteLine("Game alrrady running on this port, client will join that one");
+			bool started = false;
+            // start listening for connections
+            while (!started)
+            {
+				try
+				{
+					NetServerInstance.Start();
+					started = true;
+					Console.WriteLine("Game machine sucessfully started at port: " + this.Port);
+				}
+				catch (Exception e)
+				{
+					Console.WriteLine(e.Message);
+					this.Port++;
+					initializePeer();
+					Console.WriteLine("Game alrrady running on this port, trying port with higher number.");
+				}
 			}
 		}
 		/// <summary>
 		/// Initialize NetServer instance on provided port.
 		/// </summary>
 		/// <param name="port">Port to start NetServer on.</param>
-		private void initializePeer(int port)
+		private void initializePeer()
 		{
 			NetPeerConfiguration config = new NetPeerConfiguration("AtariNetFighter");
 			config.MaximumConnections = 10;
-			config.Port = port;
-
+			config.Port = this.Port;
+			config.EnableMessageType(NetIncomingMessageType.DiscoveryRequest);
 			config.PingInterval = 1f;
 			config.ConnectionTimeout = 1.5f;
 			this.NetServerInstance = new NetServer(config);
@@ -222,7 +233,7 @@ namespace AtariJetFighter.GameMachineObjects
 		{
 			if (gameObject is Jet)
 			{
-				SendObjectDestroyMessage(UpdateMessageType.DestroyPlayer, gameObject.ObjectID);
+				SendObjectDestroyMessage(UpdateMessageType.DestroyObject, gameObject.ObjectID);
 				this.Jets.Remove((Jet)gameObject);
 
 				if (this.Jets.Count == 1)
@@ -233,7 +244,7 @@ namespace AtariJetFighter.GameMachineObjects
 			}
 			else if (gameObject is Bullet)
 			{
-				SendObjectDestroyMessage(UpdateMessageType.DestroyProjectile, gameObject.ObjectID);
+				SendObjectDestroyMessage(UpdateMessageType.DestroyObject, gameObject.ObjectID);
 				this.Bullets.Remove((Bullet)gameObject);
 
 			}
@@ -268,7 +279,13 @@ namespace AtariJetFighter.GameMachineObjects
 						string text = message.ReadString();
 						Console.WriteLine("Server has received: " + message.MessageType + "saying: " + text);
 						break;
-
+					case NetIncomingMessageType.DiscoveryRequest:
+						var discoveryMessage = this.NetServerInstance.CreateMessage();
+						discoveryMessage.Write(true);
+						discoveryMessage.Write("THis is discoveyr message sent from game machine: " + "BA:" + this.NetServerInstance.Configuration.BroadcastAddress +"PORT: " + this.NetServerInstance.Configuration.Port + "LA: " + this.NetServerInstance.Configuration.LocalAddress +" \n"
+							+ "message.SenderEndpoint: " + message.SenderEndPoint);
+						this.NetServerInstance.SendDiscoveryResponse(discoveryMessage, message.SenderEndPoint);
+						break;
 					case NetIncomingMessageType.StatusChanged:
 						ProcessConnectionMessage(message);
 						break;

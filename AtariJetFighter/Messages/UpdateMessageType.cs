@@ -10,8 +10,7 @@
         UpdateTransform,
         SpawnPlayer,
         SpawnProjectile,
-        DestroyPlayer,
-        DestroyProjectile,
+        DestroyObject,
         UpdateScore,
         RestartGame,
         RoundUpdate

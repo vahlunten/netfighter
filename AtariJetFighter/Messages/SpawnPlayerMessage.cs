@@ -16,7 +16,7 @@ namespace AtariJetFighter.Messages
         /// <param name="rotation">Initial jet rotation.</param>
         /// <param name="color"> Jet color.</param>
         /// <returns></returns>
-        public static NetOutgoingMessage CreateMessage( NetServer netServer, byte objectId,long jetOwner, Vector2 position, float rotation, byte color)
+        public static NetOutgoingMessage CreateMessage(NetPeer netServer, byte objectId,long jetOwner, Vector2 position, float rotation, byte color)
         {
             NetOutgoingMessage message = netServer.CreateMessage();
             message.Write((byte)UpdateMessageType.SpawnPlayer);

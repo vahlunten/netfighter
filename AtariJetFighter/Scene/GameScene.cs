@@ -198,64 +198,47 @@ namespace AtariJetFighter.Scene
         /// Removes jet when player disconnects or when simulated jet is disabled.
         /// </summary>
         /// <param name="objectId"></param>
-        public void RemoveJet(byte objectId)
+        public void RemoveObject(byte objectId)
         {
+
             var removedJet = FindJetByObjectId(objectId);
             if (removedJet != null)
             {
                 this.sceneJets.Remove(removedJet);
+                return;
             }
-        }
-        /// <summary>
-        /// Remove expired bullets from scene. Bullets lifespan has expired or it hit some jet.
-        /// </summary>
-        /// <param name="objectId"></param>
-        public void RemoveBullet(byte objectId)
-        {
+
             var removedBullet = FindBulletByObjectId(objectId);
-            if (removedBullet != null)
-            {
+            
+            if(removedBullet != null) {
                 this.sceneBullets.Remove(removedBullet);
             }
         }
-        /// <summary>
-        /// Update jets positon and rotation
-        /// </summary>
-        /// <param name="objectId">Jet object identifier.</param>
-        /// <param name="position">Jets new position.</param>
-        /// <param name="rotation">Jets new rotation.</param>
-        public void UpdateJet(byte objectId, Vector2 position, float rotation)
-        {
-            var jet = FindJetByObjectId(objectId);
-            if (jet == null)
-            {
-                return;
-            }
-            else
-            {
-                jet.Position = position;
-                jet.Rotation = rotation;
-            }
-        }
+      
         /// <summary>
         /// Update bullets positon and rotation
         /// </summary>
         /// <param name="objectId">bullets object identifier.</param>
         /// <param name="position">bullets new position.</param>
         /// <param name="rotation">bullets new rotation.</param>
-        public void UpdateBullet(byte objectId, Vector2 position, float rotation)
+        public void UpdateObject(byte objectId, Vector2 position, float rotation)
         {
-            var bullet = FindBulletByObjectId(objectId);
-            if (bullet == null)
+            SceneGameObject updatedObject = FindBulletByObjectId(objectId);
+            if (updatedObject == null)
+            {
+                updatedObject = FindJetByObjectId(objectId);
+            }
+            if (updatedObject == null)
             {
                 return;
             }
             else
             {
-                bullet.Position = position;
-                bullet.Rotation = rotation;
+                updatedObject.Position = position;
+                updatedObject.Rotation = rotation;
             }
         }
+
         /// <summary>
         /// Update player score, occurs when player hits some other player or when game restarts.
         /// </summary>

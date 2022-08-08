@@ -11,7 +11,7 @@ namespace AtariJetFighter.Messages
         /// <param name="playerId">Unique object identifier.</param>
         /// <param name="score">New score of a player.</param>
         /// <returns></returns>
-        public static NetOutgoingMessage CreateMessage(NetServer netServer, long playerId, int score)
+        public static NetOutgoingMessage CreateMessage(NetPeer netServer, long playerId, int score)
         {
             NetOutgoingMessage message = netServer.CreateMessage();
             message.Write((byte)UpdateMessageType.UpdateScore);

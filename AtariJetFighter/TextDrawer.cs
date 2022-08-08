@@ -82,20 +82,10 @@ namespace AtariJetFighter
                     {
                         DrawStringCenter(disconnected, disconnectedDimensions, 0.4f);
                         DrawStringCenter(returnToMenu, returnToMenuDimensions, 0.5f, 350f);
-                    }
+                    }                    
                     break;
-                case GameMachineObjects.GameStateEnum.Connecting:
-                    {
-                        DrawStringCenter(connecting, connectingDimensions);
-                        DrawStringCenter(returnToMenu, returnToMenuDimensions, 0.5f, 350f);
-                    }
-                    break;
-                case GameMachineObjects.GameStateEnum.FailedToConnect:
-                    {
-                        DrawStringCenter(failedToConnect, failedToConnectDimensions, 0.35f);
-                        DrawStringCenter(returnToMenu, returnToMenuDimensions, 0.5f, 350f);
-
-                    }
+                case GameMachineObjects.GameStateEnum.Discovering:
+                    DrawDiscoveredGames();
                     break;
                 default:
                     break;
@@ -125,6 +115,18 @@ namespace AtariJetFighter
                 scale,
                 SpriteEffects.None,
                 1.0f);
+        }
+
+        private void DrawDiscoveredGames()
+        {
+            string chooseGameString = "Press numerical key with [index] oy game";
+
+            this.DrawStringCenter(chooseGameString, font.MeasureString(chooseGameString), 0.7f, -200f);
+            for (int i = 0; i < this.jfGame.client.DiscoveredGames.Count; i++)
+            {
+                var game = this.jfGame.client.DiscoveredGames[i];
+                this.DrawStringCenter($"[{i}]" + game.ToString(), font.MeasureString(game.ToString()), 0.5f, i * 50f);
+            }
         }
     }
 }
